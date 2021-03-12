@@ -1,16 +1,6 @@
 from django.contrib import admin
 
-from .models import (Course, StudyGroup, Teacher, Assignment, Student, Admission)
-
-
-@admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-
-
-@admin.register(StudyGroup)
-class StudyGroupAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+from .models import (Teacher, Assignment, EducationProgram, StudyGroup, StudentsNumber, Course)
 
 
 @admin.register(Teacher)
@@ -23,11 +13,21 @@ class PositionAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'position', 'wage_rate', 'date')
 
 
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display = ('fio',)
+@admin.register(EducationProgram)
+class EducationProgramAdmin(admin.ModelAdmin):
+    list_display = ('code', 'title', 'level')
 
 
-@admin.register(Admission)
-class AdmissionAdmin(admin.ModelAdmin):
-    list_display = ('student', 'study_group', 'is_studying')
+@admin.register(StudyGroup)
+class StudyGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'program')
+
+
+@admin.register(StudentsNumber)
+class StudentsNumberAdmin(admin.ModelAdmin):
+    list_display = ('study_group', 'date', 'subgroups', 'students')
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('study_group', 'name',)

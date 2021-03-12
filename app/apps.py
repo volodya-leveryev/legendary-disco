@@ -1,6 +1,6 @@
-from django.apps import AppConfig
+from django.apps import AppConfig as Config
 
 
-class TheAppConfig(AppConfig):
+class AppConfig(Config):
     name = 'app'
-    verbose_name = 'расчёт часов'
+    verbose_name = 'Расчёт часов'

@@ -1,5 +1,5 @@
-from django.db.models import (Model, BooleanField, CharField, DateField, ForeignKey, IntegerField, DecimalField,
-                              TextField, CASCADE)
+from django.db.models import (Model, CharField, DateField, DecimalField, FileField, ForeignKey,
+                              IntegerField, CASCADE)
 
 
 class Person(Model):
@@ -9,7 +9,6 @@ class Person(Model):
 
     class Meta:
         abstract = True
-        ordering = ['last_name', 'first_name', 'second_name']
 
     def fio(self):
         result = f'{self.last_name} {self.first_name:.1}.'
@@ -84,6 +83,7 @@ class Teacher(Person):
     title = CharField('учёное звание', max_length=5, choices=TITLES, blank=True)
 
     class Meta:
+        ordering = ['last_name', 'first_name', 'second_name']
         verbose_name = 'преподаватель'
         verbose_name_plural = 'преподаватели'
 
@@ -108,11 +108,33 @@ class Assignment(Model):
         verbose_name_plural = 'приёмы на работу'
 
 
+class EducationProgram(Model):
+    LEVELS = (
+        ('B', 'Бакалавриат'),
+        ('M', 'Магистратура'),
+    )
+    level = CharField('уровень', max_length=1, choices=LEVELS)
+    code = CharField('код', max_length=8)
+    title = CharField('направление', max_length=100)
+    subtitle = CharField('профиль', max_length=100, blank=True)
+    file = FileField('PLX-файл', upload_to='edu_plan/')
+
+    class Meta:
+        ordering = ['level', 'code']
+        verbose_name = 'образовательная программа'
+        verbose_name_plural = 'образовательные программы'
+
+    def __str__(self):
+        return f'{self.code} {self.title}'
+
+
 class StudyGroup(Model):
     name = CharField('название', max_length=25)
     year = IntegerField('год поступления')
+    program = ForeignKey('EducationProgram', verbose_name='образовательная программа', on_delete=CASCADE)
 
     class Meta:
+        ordering = ['program', 'year', 'name']
         verbose_name = 'учебная группа'
         verbose_name_plural = 'учебные группы'
 
@@ -120,25 +142,37 @@ class StudyGroup(Model):
         return self.name
 
 
-class Student(Person):
-    class Meta:
-        verbose_name = 'студент'
-        verbose_name_plural = 'студенты'
-
-
-class Admission(Model):
-    student = ForeignKey('Student', verbose_name='студент', on_delete=CASCADE)
+class StudentsNumber(Model):
     study_group = ForeignKey('StudyGroup', verbose_name='учебная группа', on_delete=CASCADE)
-    is_studying = BooleanField('обучается')
-    comment = TextField('комментарий', blank=True)
+    date = DateField('дата изменения')
+    subgroups = IntegerField('количество подгрупп')
+    students = IntegerField('количество студентов')
 
     class Meta:
-        verbose_name = 'зачисление'
-        verbose_name_plural = 'зачисления'
+        ordering = ['study_group', 'date']
+        verbose_name = 'численность учебной группы'
+        verbose_name_plural = 'численность учебных групп'
 
 
 class Course(Model):
+    CONTROLS = (
+        ('Эк', 'Экзамен'),
+        ('ЗаО', 'Зачёт с оценкой'),
+        ('За', 'Зачёт'),
+        ('КП', 'Курсовой проект'),
+    )
+    code = CharField('название', max_length=15)
     name = CharField('название', max_length=50)
+    study_group = ForeignKey('StudyGroup', verbose_name='учебная группа', on_delete=CASCADE)
+    control = CharField('название', max_length=3, choices=CONTROLS)
+    hour_lecture = IntegerField('лек.', blank=0)  # Лекции
+    hour_practice = IntegerField('прак.', blank=0)  # Практические занятия
+    hour_lab_work = IntegerField('лаб.', blank=0)  # Лабораторные работы
+    hour_cons = IntegerField('конс.', blank=0)  # Предэкзаменационные консультации
+    hour_exam = IntegerField('экз.', blank=0)  # Экзамен
+    hour_test = IntegerField('К.Р.', blank=0)  # Проверка РГР, рефератов и контрольных работ
+    hour_home = IntegerField('СРС', blank=0)  # Проверка СРС
+    hour_rating = IntegerField('БРС', blank=0)  # Ведение БРС
 
     class Meta:
         ordering = ['name']
