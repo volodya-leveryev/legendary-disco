@@ -2,8 +2,8 @@ from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
-from jimmy.models import db, migrate, User, Teacher, Assignment
-from jimmy.views import TeacherView, AssignmentView
+from jimmy.models import (db, migrate, User, Teacher, Assignment)
+from jimmy.views import (TeacherView, AssignmentView)
 
 
 def create_app():
