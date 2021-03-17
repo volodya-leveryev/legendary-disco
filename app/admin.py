@@ -30,4 +30,7 @@ class StudentsNumberAdmin(admin.ModelAdmin):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
+    actions = []
     list_display = ('study_group', 'name',)
+
+    # TODO: создать новую страницу в админке для загрузки РУП и заполнения дисциплин

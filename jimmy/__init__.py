@@ -1,23 +1,20 @@
 from flask import Flask
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 
-from jimmy.models import (db, migrate, User, Teacher, Assignment)
-from jimmy.views import (TeacherView, AssignmentView)
+from jimmy.models import db, Person, Teacher
+from jimmy.views import (PersonView, TeacherView)
 
 
 def create_app():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = 'secret'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['MONGODB_HOST'] = 'localhost'
+    app.config['MONGODB_DB'] = 'jimmy'
     db.init_app(app)
-    migrate.init_app(app, db, render_as_batch=True)
 
     admin = Admin(app)
-    admin.add_view(ModelView(User, db.session, 'Пользователь'))
-    admin.add_view(TeacherView(Teacher, db.session, 'Преподаватель'))
-    admin.add_view(AssignmentView(Assignment, db.session, 'Приём на работу'))
+    admin.add_view(PersonView(Person, 'Люди'))
+    admin.add_view(TeacherView(Teacher, 'Преподаватели'))
 
     return app

@@ -1,38 +1,115 @@
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
+from flask_mongoengine import MongoEngine
 
-db = SQLAlchemy()
-migrate = Migrate()
+db = MongoEngine()
 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), unique=True, nullable=False)
-    password = db.Column(db.String(64), nullable=False)
+class Person(db.Document):
+    DEGREES = (
+        ('—', 'Без учёной степени'),
+        ('к.арх.', 'Кандидат архитектуры'),
+        ('к.б.н.', 'Кандидат биологических наук'),
+        ('к.вет.н.', 'Кандидат ветеринарных наук'),
+        ('к.воен.н.', 'Кандидат военных наук'),
+        ('к.г.н.', 'Кандидат географических наук'),
+        ('к.г.-м.н.', 'Кандидат геолого-минералогических наук'),
+        ('к.иск.', 'Кандидат искусствоведения'),
+        ('к.и.н.', 'Кандидат исторических наук'),
+        ('к.культ.', 'Кандидат культурологии'),
+        ('к.м.н.', 'Кандидат медицинских наук'),
+        ('к.пед.н.', 'Кандидат педагогических наук'),
+        ('к.полит.н.', 'Кандидат политических наук'),
+        ('к.п.н.', 'Кандидат психологических наук'),
+        ('к.с.-х.н.', 'Кандидат сельскохозяйственных наук'),
+        ('к.социол.н.', 'Кандидат социологических наук'),
+        ('к.теол.н.', 'Кандидат теологических наук'),
+        ('к.т.н.', 'Кандидат технических наук'),
+        ('к.фарм.н.', 'Кандидат фармацевтических наук'),
+        ('к.ф.-м.н.', 'Кандидат физико-математических наук'),
+        ('к.ф.н.', 'Кандидат филологических наук'),
+        ('к.филос.н.', 'Кандидат философских наук'),
+        ('к.х.н.', 'Кандидат химических наук'),
+        ('к.э.н.', 'Кандидат экономических наук'),
+        ('к.ю.н.', 'Кандидат юридических наук'),
+        ('д.арх.', 'Доктор архитектуры'),
+        ('д.б.н.', 'Доктор биологических наук'),
+        ('д.вет.н.', 'Доктор ветеринарных наук'),
+        ('д.воен.н.', 'Доктор военных наук'),
+        ('д.г.н.', 'Доктор географических наук'),
+        ('д.г.-м.н.', 'Доктор геолого-минералогических наук'),
+        ('д.иск.', 'Доктор искусствоведения'),
+        ('д.и.н.', 'Доктор исторических наук'),
+        ('д.культ.', 'Доктор культурологии'),
+        ('д.м.н.', 'Доктор медицинских наук'),
+        ('д.пед.н.', 'Доктор педагогических наук'),
+        ('д.полит.н.', 'Доктор политических наук'),
+        ('д.п.н.', 'Доктор психологических наук'),
+        ('д.с.-х.н.', 'Доктор сельскохозяйственных наук'),
+        ('д.социол.н.', 'Доктор социологических наук'),
+        ('д.теол.н.', 'Доктор теологических наук'),
+        ('д.т.н.', 'Доктор технических наук'),
+        ('д.фарм.н.', 'Доктор фармацевтических наук'),
+        ('д.ф.-м.н.', 'Доктор физико-математических наук'),
+        ('д.ф.н.', 'Доктор филологических наук'),
+        ('д.филос.н.', 'Доктор философских наук'),
+        ('д.х.н.', 'Доктор химических наук'),
+        ('д.э.н.', 'Доктор экономических наук'),
+        ('д.ю.н.', 'Доктор юридических наук'),
+    )
 
-    def __repr__(self):
-        return f'{self.username}'
+    TITLES = (
+        ('—', 'Без учёного звания'),
+        ('доц.', 'Доцент'),
+        ('проф.', 'Профессор'),
+    )
 
+    last_name = db.StringField(verbose_name='Фамилия', max_length=32, required=True)
+    first_name = db.StringField(verbose_name='Имя', max_length=32, required=True)
+    second_name = db.StringField(verbose_name='Отчество', max_length=32)
+    emails = db.ListField(db.StringField(max_length=32), verbose_name='Почта')
+    degree = db.StringField(verbose_name='Уч. степень', max_length=16, choices=DEGREES)
+    title = db.StringField(verbose_name='Уч. звание', max_length=8, choices=TITLES)
 
-class Teacher(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    last_name = db.Column(db.String(25), nullable=False)
-    first_name = db.Column(db.String(25), nullable=False)
-    second_name = db.Column(db.String(25))
-    degree = db.Column(db.String(12), nullable=False)
-    title = db.Column(db.String(5), nullable=False)
-
-    def __repr__(self):
+    @property
+    def fio(self):
         result = f'{self.last_name} {self.first_name:.1}.'
         if self.second_name:
             result += f'{self.second_name:.1}.'
         return result
 
+    def __str__(self):
+        return self.fio
 
-class Assignment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
-    teacher = db.relationship('Teacher')
-    position = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    wage_rate = db.Column(db.Numeric(precision=2), nullable=False)
+
+class Teacher(db.Document):
+    DEPARTMENTS = (
+        ('АиГ', 'Кафедра алгебры и геометрии'),
+        ('ВМ', 'Кафедра высшей математики'),
+        ('ДУ', 'Кафедра дифференциальных уравнений'),
+        ('ИТ', 'Кафедра информационных технологий'),
+        ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
+        ('МА', 'Кафедра математического анализа'),
+        ('МПМ', 'Кафедра методики преподавания математики'),
+        ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
+        ('ПМ', 'Кафедра прикладной математики'),
+        ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
+    )
+
+    POSITIONS = (
+        ('—', 'Не работает'),
+        ('асс.', 'Ассистент'),
+        ('ст.п.', 'Старший преподаватель'),
+        ('доц.', 'Доцент'),
+        ('проф.', 'Профессор'),
+        ('зав.каф.', 'Заведующий кафедрой'),
+    )
+
+    SEMESTERS = (
+        ('20-21, 1', '2020-21 уч.г., 1 семестр'),
+        ('20-21, 2', '2020-21 уч.г., 2 семестр'),
+    )
+
+    person = db.ReferenceField(Person, verbose_name='Преподаватель', required=True)
+    department = db.StringField(verbose_name='Кафедра', max_length=5, choices=DEPARTMENTS, required=True)
+    position = db.StringField(verbose_name='Должность', max_length=10, choices=POSITIONS, required=True)
+    semester = db.StringField(verbose_name='Семестр', max_length=10, choices=SEMESTERS, required=True)
+    wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
