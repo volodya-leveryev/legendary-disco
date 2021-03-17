@@ -13,6 +13,8 @@ services:
   app:
     build: .
     restart: always
+    env_file:
+      - production.env
     volumes:
       - ./jimmy:/jimmy
 
