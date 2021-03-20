@@ -3,8 +3,8 @@ import os
 from flask import Flask
 from flask_admin import Admin
 
-from jimmy.models import db, Person, Teacher
-from jimmy.views import (PersonView, TeacherView)
+from jimmy.models import db, Person, JobAssignment, StudentGroup
+from jimmy.views import (PersonView, TeacherView, StudentGroupView)
 
 
 def create_app():
@@ -17,6 +17,7 @@ def create_app():
 
     admin = Admin(app)
     admin.add_view(PersonView(Person, 'Люди'))
-    admin.add_view(TeacherView(Teacher, 'Преподаватели'))
+    admin.add_view(TeacherView(JobAssignment, 'Преподаватели'))
+    admin.add_view(StudentGroupView(StudentGroup, 'Учебные группы'))
 
     return app

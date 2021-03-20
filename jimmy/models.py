@@ -80,7 +80,7 @@ class Person(db.Document):
         return self.fio
 
 
-class Teacher(db.Document):
+class JobAssignment(db.Document):
     DEPARTMENTS = (
         ('АиГ', 'Кафедра алгебры и геометрии'),
         ('ВМ', 'Кафедра высшей математики'),
@@ -104,8 +104,8 @@ class Teacher(db.Document):
     )
 
     SEMESTERS = (
-        ('20-21, 1', '2020-21 уч.г., 1 семестр'),
-        ('20-21, 2', '2020-21 уч.г., 2 семестр'),
+        ('20-21/1', '2020-21 уч.г., 1 семестр'),
+        ('20-21/2', '2020-21 уч.г., 2 семестр'),
     )
 
     person = db.ReferenceField(Person, verbose_name='Преподаватель', required=True)
@@ -113,3 +113,13 @@ class Teacher(db.Document):
     position = db.StringField(verbose_name='Должность', max_length=10, choices=POSITIONS, required=True)
     semester = db.StringField(verbose_name='Семестр', max_length=10, choices=SEMESTERS, required=True)
     wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
+
+
+class StudentGroup(db.Document):
+    LEVELS = (
+        ('B', 'Бакалавриат'),
+        ('M', 'Магистратура'),
+    )
+
+    name = db.StringField(verbose_name='Название', max_length=20, required=True)
+    level = db.StringField(verbose_name='уровень', max_length=1, choices=LEVELS, required=True)

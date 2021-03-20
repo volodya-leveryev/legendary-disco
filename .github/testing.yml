@@ -1,0 +1,19 @@
+name: Testing
+on: [push]
+jobs:
+  testing-job:
+    name: Unit testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        run: git clone $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y python3-venv
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+      - name: Unit testing
+        run: |
+          source venv/bin/activate
+          pytest
