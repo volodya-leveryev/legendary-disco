@@ -16,4 +16,12 @@ jobs:
       - name: Unit testing
         run: |
           pip install pytest pytest-cov
-          pytest --cov=jimmy --cov-report=xml --cov-report= tests
+          pytest --junitxml=testing-report.xml --cov=jimmy --cov-report=xml --cov-report= tests
+      - uses: actions/upload-artifact@v2
+        with:
+          name: testing-report
+          path: testing-report.xml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: coverage.xml
