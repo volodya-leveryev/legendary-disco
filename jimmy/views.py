@@ -18,9 +18,7 @@ def login_required(func):
                 return redirect(url_for('login'))
             session['user'] = {
                 'id': str(persons[0].id),
-                'last_name': persons[0].last_name,
-                'first_name': persons[0].first_name,
-                'second_name': persons[0].second_name,
+                'str': str(persons[0]),
             }
         return func(*args, **kwargs)
     return wrap

@@ -1,8 +1,6 @@
 *.cfg
-*.env
 *.pyc
 .idea/
-db.sqlite3
 db/
 media/
 migrations/

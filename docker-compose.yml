@@ -13,8 +13,8 @@ services:
   app:
     build: .
     restart: always
-    env_file:
-      - production.env
+    environment:
+      JIMMY_CONFIG: production.cfg
     volumes:
       - ./jimmy:/jimmy
 

@@ -116,10 +116,43 @@ class JobAssignment(db.Document):
 
 
 class StudentGroup(db.Document):
-    LEVELS = (
-        ('B', 'Бакалавриат'),
-        ('M', 'Магистратура'),
+    PROGRAM = (
+        ('09.03.01', 'Бак. ИВТ'),
+        ('02.03.02', 'Бак. ФИИТ'),
+        ('09.04.01', 'Маг. ИВТ'),
+        ('02.04.02', 'Маг. ФИИТ'),
     )
 
     name = db.StringField(verbose_name='Название', max_length=20, required=True)
-    level = db.StringField(verbose_name='уровень', max_length=1, choices=LEVELS, required=True)
+    program = db.StringField(verbose_name='Программа', max_length=8, choices=PROGRAM, required=True)
+    subgroup = db.IntField(verbose_name='Подгрупп', requred=True)
+    students = db.IntField(verbose_name='Студентов', requred=True)
+
+
+# class Course(Model):
+#     CONTROLS = (
+#         ('Эк', 'Экзамен'),
+#         ('ЗаО', 'Зачёт с оценкой'),
+#         ('За', 'Зачёт'),
+#         ('КП', 'Курсовой проект'),
+#     )
+#     code = CharField('название', max_length=15)
+#     name = CharField('название', max_length=50)
+#     study_group = ForeignKey('StudyGroup', verbose_name='учебная группа', on_delete=CASCADE)
+#     control = CharField('название', max_length=3, choices=CONTROLS)
+#     hour_lecture = IntegerField('лек.', blank=0)  # Лекции
+#     hour_practice = IntegerField('прак.', blank=0)  # Практические занятия
+#     hour_lab_work = IntegerField('лаб.', blank=0)  # Лабораторные работы
+#     hour_cons = IntegerField('конс.', blank=0)  # Предэкзаменационные консультации
+#     hour_exam = IntegerField('экз.', blank=0)  # Экзамен
+#     hour_test = IntegerField('К.Р.', blank=0)  # Проверка РГР, рефератов и контрольных работ
+#     hour_home = IntegerField('СРС', blank=0)  # Проверка СРС
+#     hour_rating = IntegerField('БРС', blank=0)  # Ведение БРС
+#
+#     class Meta:
+#         ordering = ['name']
+#         verbose_name = 'дисциплина'
+#         verbose_name_plural = 'дисциплины'
+#
+#     def __str__(self):
+#         return self.name

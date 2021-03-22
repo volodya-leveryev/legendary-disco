@@ -1,5 +1,8 @@
-db/
-*.env
+*.cfg
+*.pyc
 .git/
 .idea/
+.pytest_cache/
+db/
+tests/
 venv/
