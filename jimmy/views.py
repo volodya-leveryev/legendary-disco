@@ -1,25 +1,16 @@
-import json
-
+from authlib.integrations.flask_client import OAuth
 from flask import redirect, render_template, request, session, url_for
 from flask_admin.contrib.mongoengine import ModelView
-from flask_dance.contrib.google import google
 
-from jimmy.models import Person
+from jimmy import models
+
+oauth = OAuth()
 
 
 def login_required(func):
     def wrap(*args, **kwargs):
-        if not google.authorized:
-            return redirect(url_for('login'))
         if 'user' not in session:
-            userinfo = json.loads(google.get('/oauth2/v1/userinfo').content)
-            persons = Person.objects(emails=userinfo.get('email'))
-            if not persons:
-                return redirect(url_for('login'))
-            session['user'] = {
-                'id': str(persons[0].id),
-                'str': str(persons[0]),
-            }
+            return redirect(url_for('login'))
         return func(*args, **kwargs)
     return wrap
 
@@ -33,9 +24,28 @@ def login_page():
     return render_template('login.html')
 
 
-def logout():
-    session.pop('google_oauth_token')
-    session.pop('user')
+def auth_initiate():
+    scheme = request.headers.get('X-Forwarded-Proto')
+    redirect_uri = url_for('auth_complete', _external=True, _scheme=scheme)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+def auth_complete():
+    token = oauth.google.authorize_access_token()
+    userinfo = oauth.google.parse_id_token(token)
+    persons = models.Person.objects(emails=userinfo.get('email'))
+    if not persons:
+        return redirect(url_for('login'))
+    session['user'] = {
+        'id': str(persons[0].id),
+        'str': str(persons[0]),
+    }
+    return redirect(url_for('home'))
+
+
+def auth_forget():
+    if 'user' in session:
+        session.pop('user')
     return redirect(url_for('login'))
 
 
