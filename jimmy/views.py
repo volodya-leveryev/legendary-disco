@@ -74,8 +74,14 @@ def person_list():
 
 
 @login_required
+def job_assignment_list():
+    job_assignments = models.JobAssignment.objects.order_by('person')
+    return render_template('job_assignment_list.html', job_assignments=job_assignments)
+
+
+@login_required
 def student_group_list():
-    student_groups = models.StudentGroup.objects.order_by('last_name', 'first_name', 'second_name')
+    student_groups = models.StudentGroup.objects.order_by('name')
     return render_template('student_group_list.html', student_groups=student_groups)
 
 

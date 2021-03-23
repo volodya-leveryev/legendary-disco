@@ -8,21 +8,21 @@
             <thead>
             <tr>
                 <th>№</th>
-                <th>Группа</th>
-                <th>Программа</th>
-                <th>Кол-во подгрупп</th>
-                <th>Кол-во студентов</th>
+                <th>Преподаватель</th>
+                <th>Кафедра</th>
+                <th>Должность</th>
+                <th>Ставка</th>
                 <th>&nbsp;</th>
             </tr>
             </thead>
             <tbody>
-            {% for sg in student_groups %}
+            {% for ja in job_assignments %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td>{{ sg.name }}</td>
-                <td>{{ sg.program }}</td>
-                <td>{{ sg.subgroups }}</td>
-                <td>{{ sg.students }}</td>
+                <td>{{ ja.person }}</td>
+                <td>{{ ja.department }}</td>
+                <td>{{ ja.position }}</td>
+                <td>{{ ja.wage_rate }}</td>
                 <td>&nbsp;</td>
             </tr>
             {% endfor %}
