@@ -1,0 +1,32 @@
+{% extends 'menu.html' %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h1>{% block title %}Люди{% endblock %}</h1>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>№</th>
+                <th>ФИО</th>
+                <th>Почта</th>
+                <th>Уч. степень</th>
+                <th>Уч. звание</th>
+                <th>&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in persons %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ p.fio }}</td>
+                <td>{{ p.emails|join(', ') }}</td>
+                <td>{{ p.degree}}</td>
+                <td>{{ p.title }}</td>
+                <td>&nbsp;</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

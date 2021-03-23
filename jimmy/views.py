@@ -15,11 +15,6 @@ def login_required(func):
     return wrap
 
 
-@login_required
-def home_page():
-    return render_template('index.html')
-
-
 def login_page():
     return render_template('login.html')
 
@@ -65,6 +60,17 @@ def google_auth_done():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+
+@login_required
+def home_page():
+    return render_template('home.html')
+
+
+@login_required
+def person_list():
+    persons = models.Person.objects.order_by('last_name', 'first_name', 'second_name')
+    return render_template('person_list.html', persons=persons)
 
 
 class PersonView(ModelView):

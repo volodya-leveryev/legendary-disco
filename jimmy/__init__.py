@@ -19,13 +19,15 @@ def create_app():
     google_conf_url = 'https://accounts.google.com/.well-known/openid-configuration'
     views.oauth.register('google', server_metadata_url=google_conf_url, client_kwargs={'scope': 'openid email'})
 
-    app.add_url_rule('/', endpoint='home', view_func=views.home_page)
     app.add_url_rule('/login/', endpoint='login', view_func=views.login_page)
     app.add_url_rule('/azure_auth_init/', view_func=views.azure_auth_init)
     app.add_url_rule('/azure_auth_done/', view_func=views.azure_auth_done)
     app.add_url_rule('/google_auth_init/', view_func=views.google_auth_init)
     app.add_url_rule('/google_auth_done/', view_func=views.google_auth_done)
     app.add_url_rule('/logout/', view_func=views.logout)
+
+    app.add_url_rule('/', endpoint='home', view_func=views.home_page)
+    app.add_url_rule('/person/list/', endpoint='person_list', view_func=views.person_list)
 
     admin.init_app(app)
     admin.add_view(views.PersonView(models.Person, 'Люди'))
