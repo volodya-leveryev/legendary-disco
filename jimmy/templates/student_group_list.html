@@ -3,26 +3,26 @@
 {% block content %}
 <div class="row">
     <div class="col">
-        <h1>{% block title %}Люди{% endblock %}</h1>
+        <h1>{% block title %}Учебные группы{% endblock %}</h1>
         <table class="table table-hover">
             <thead>
             <tr>
                 <th>№</th>
-                <th>ФИО</th>
-                <th>Почта</th>
-                <th>Уч. степень</th>
-                <th>Уч. звание</th>
+                <th>Группа</th>
+                <th>Программа</th>
+                <th>Кол-во подгрупп</th>
+                <th>Кол-во студентов</th>
                 <th>&nbsp;</th>
             </tr>
             </thead>
             <tbody>
-            {% for p in persons %}
+            {% for s in student_groups %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td>{{ p.fio }}</td>
-                <td>{{ p.emails|join(', ') }}</td>
-                <td>{{ p.degree }}</td>
-                <td>{{ p.title }}</td>
+                <td>{{ s.name }}</td>
+                <td>{{ s.program }}</td>
+                <td>{{ s.subgroups }}</td>
+                <td>{{ s.students }}</td>
                 <td>&nbsp;</td>
             </tr>
             {% endfor %}

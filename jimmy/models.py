@@ -125,8 +125,8 @@ class StudentGroup(db.Document):
 
     name = db.StringField(verbose_name='Название', max_length=20, required=True)
     program = db.StringField(verbose_name='Программа', max_length=8, choices=PROGRAM, required=True)
-    subgroup = db.IntField(verbose_name='Подгрупп', requred=True)
-    students = db.IntField(verbose_name='Студентов', requred=True)
+    subgroups = db.IntField(verbose_name='Подгруппы', requred=True)
+    students = db.IntField(verbose_name='Студенты', requred=True)
 
 
 # class Course(Model):

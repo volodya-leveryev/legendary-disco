@@ -73,6 +73,12 @@ def person_list():
     return render_template('person_list.html', persons=persons)
 
 
+@login_required
+def student_group_list():
+    student_groups = models.StudentGroup.objects.order_by('last_name', 'first_name', 'second_name')
+    return render_template('student_group_list.html', student_groups=student_groups)
+
+
 class PersonView(ModelView):
     column_list = ('fio', 'emails', 'degree', 'title')
     column_default_sort = 'last_name'

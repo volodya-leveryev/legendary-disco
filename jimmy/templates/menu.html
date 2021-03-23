@@ -5,16 +5,16 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('home') }}">КУП</a>
+                    <a class="nav-link{% if active_page == 'home' %} active{% endif %}" href="{{ url_for('home') }}">КУП</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link{% if active_page == 'reference' %} active{% endif %} dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Справочники
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{{ url_for('person_list') }}">Люди</a></li>
-                        <li><a class="dropdown-item" href="#">Преподаватели</a></li>
-                        <li><a class="dropdown-item" href="#">Учебные группы</a></li>
+                        <li><a class="dropdown-item" href="">Преподаватели</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('student_group_list') }}">Учебные группы</a></li>
                     </ul>
                 </li>
             </ul>

@@ -28,6 +28,7 @@ def create_app():
 
     app.add_url_rule('/', endpoint='home', view_func=views.home_page)
     app.add_url_rule('/person/list/', endpoint='person_list', view_func=views.person_list)
+    app.add_url_rule('/student_group/list/', endpoint='student_group_list', view_func=views.student_group_list)
 
     admin.init_app(app)
     admin.add_view(views.PersonView(models.Person, 'Люди'))
