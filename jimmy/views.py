@@ -63,8 +63,7 @@ def google_auth_done():
 
 
 def logout():
-    if 'user' in session:
-        session.pop('user')
+    session.clear()
     return redirect(url_for('login'))
 
 
