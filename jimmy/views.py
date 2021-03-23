@@ -24,13 +24,32 @@ def login_page():
     return render_template('login.html')
 
 
-def auth_initiate():
+def azure_auth_init():
     scheme = request.headers.get('X-Forwarded-Proto')
-    redirect_uri = url_for('auth_complete', _external=True, _scheme=scheme)
+    redirect_uri = url_for('azure_auth_done', _external=True, _scheme=scheme)
+    return oauth.azure.authorize_redirect(redirect_uri)
+
+
+def azure_auth_done():
+    token = oauth.azure.authorize_access_token()
+    userinfo = oauth.azure.parse_id_token(token)
+    persons = models.Person.objects(emails=userinfo.get('email'))
+    if not persons:
+        return redirect(url_for('login'))
+    session['user'] = {
+        'id': str(persons[0].id),
+        'str': str(persons[0]),
+    }
+    return redirect(url_for('home'))
+
+
+def google_auth_init():
+    scheme = request.headers.get('X-Forwarded-Proto')
+    redirect_uri = url_for('google_auth_done', _external=True, _scheme=scheme)
     return oauth.google.authorize_redirect(redirect_uri)
 
 
-def auth_complete():
+def google_auth_done():
     token = oauth.google.authorize_access_token()
     userinfo = oauth.google.parse_id_token(token)
     persons = models.Person.objects(emails=userinfo.get('email'))
@@ -43,7 +62,7 @@ def auth_complete():
     return redirect(url_for('home'))
 
 
-def auth_forget():
+def logout():
     if 'user' in session:
         session.pop('user')
     return redirect(url_for('login'))
