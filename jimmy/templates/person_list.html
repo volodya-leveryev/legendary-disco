@@ -13,17 +13,19 @@
                 <th>Уч. степень</th>
                 <th>Уч. звание</th>
                 <th>&nbsp;</th>
+                <th>&nbsp;</th>
             </tr>
             </thead>
             <tbody>
-            {% for p in persons %}
-            <tr>
+            {% for doc in persons %}
+            <tr data-doc-id="{{ doc.id }}">
                 <td>{{ loop.index }}</td>
-                <td>{{ p.fio }}</td>
-                <td>{{ p.emails|join(', ') }}</td>
-                <td>{{ p.degree }}</td>
-                <td>{{ p.title }}</td>
-                <td>&nbsp;</td>
+                <td>{{ doc.fio }}</td>
+                <td>{{ doc.emails|join(', ') }}</td>
+                <td>{{ doc.degree }}</td>
+                <td>{{ doc.title }}</td>
+                <td><a href="{{ url_for('person_edit', person_id=doc.id) }}"><i class="bi bi-pencil-square"></i></a></td>
+                <td><a href="#"><i class="bi bi-trash"></i></a></td>
             </tr>
             {% endfor %}
             </tbody>
