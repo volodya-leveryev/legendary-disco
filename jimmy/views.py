@@ -7,7 +7,7 @@ from jimmy import models, forms
 def login_required(func):
     def wrap(*args, **kwargs):
         if 'user' not in session:
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login_page'))
         return func(*args, **kwargs)
     return wrap
 
@@ -56,7 +56,7 @@ class PersonView(ModelView):
         return 'user' in session
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login', next=request.url))
+        return redirect(url_for('auth.login_page', next=request.url))
 
 
 class TeacherView(ModelView):
@@ -73,7 +73,7 @@ class TeacherView(ModelView):
         return 'user' in session
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login', next=request.url))
+        return redirect(url_for('auth.login_page', next=request.url))
 
 
 class StudentGroupView(ModelView):
@@ -86,4 +86,4 @@ class StudentGroupView(ModelView):
         return 'user' in session
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login', next=request.url))
+        return redirect(url_for('auth.login_page', next=request.url))
