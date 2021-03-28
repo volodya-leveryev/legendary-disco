@@ -1,0 +1,42 @@
+{% extends 'menu.html' %}
+{% set active_page = 'reference' %}
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h1>{% block title %}{{ title }}{% endblock %}</h1>
+        <form method="post">
+            {% for field in form %}
+            {% if field.__class__.__name__ == 'StringField' %}
+            <div class="mb-3 col-lg-6 col-md-8 col-sm-10 col-xs-12">
+                <label class="form-label">{{ field.label.text }}</label>
+                {{ field(class_='form-control') }}
+            </div>
+            {% elif field.__class__.__name__ == 'SelectField' %}
+            <div class="mb-3 col-lg-6 col-md-8 col-sm-10 col-xs-12">
+                <label class="form-label">{{ field.label.text }}</label>
+                {{ field(class_='form-select') }}
+            </div>
+            {% elif field.__class__.__name__ == 'FieldList' %}
+            <div class="card mb-3 col-lg-6 col-md-8 col-sm-10 col-xs-12">
+                <div class="card-body">
+                    <label class="form-label">{{ field.label.text }}</label>
+                    <a class="btn btn-secondary btn-clipboard" href="#">+</a>
+                    {% for field2 in field %}
+                    <div class="input-group{% if not loop.last %} mb-3{% endif %}">
+                        {{ field2(class_='form-control') }}
+                        <a class="btn btn-outline-secondary" role="button" href="#"><i class="bi bi-trash"></i></a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <input type="submit" class="btn btn-primary" role="button" value="Сохранить">
+            <a class="btn btn-secondary" role="button" href="{{ url_for('person_list') }}">Отмена</a>
+        </form>
+    </div>
+</div>
+<script>
+
+</script>
+{% endblock %}

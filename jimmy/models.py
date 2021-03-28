@@ -1,4 +1,5 @@
 from flask_mongoengine import MongoEngine
+from mongoengine import CASCADE, NULLIFY
 
 db = MongoEngine()
 
@@ -109,10 +110,19 @@ class JobAssignment(db.Document):
     )
 
     person = db.ReferenceField(Person, verbose_name='Преподаватель', required=True)
-    department = db.StringField(verbose_name='Кафедра', max_length=5, choices=DEPARTMENTS, required=True)
-    position = db.StringField(verbose_name='Должность', max_length=10, choices=POSITIONS, required=True)
-    semester = db.StringField(verbose_name='Семестр', max_length=10, choices=SEMESTERS, required=True)
+    department = db.StringField(verbose_name='Кафедра', max_length=5, required=True, choices=DEPARTMENTS)
+    position = db.StringField(verbose_name='Должность', max_length=10, required=True, choices=POSITIONS)
     wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
+
+    def __str__(self):
+        result = self.person.fio
+        if self.wage_rate == 1:
+            result += f', {self.position} каф. {self.department}'
+        elif self.wage_rate == 0.5:
+            result += f', 0.5 ст. {self.position} каф. {self.department}'
+        else:
+            result += f', {self.wage_rate:.2f} ст. {self.position} каф. {self.department}'
+        return result
 
 
 class StudentGroup(db.Document):
@@ -124,35 +134,34 @@ class StudentGroup(db.Document):
     )
 
     name = db.StringField(verbose_name='Название', max_length=20, required=True)
-    program = db.StringField(verbose_name='Программа', max_length=8, choices=PROGRAM, required=True)
+    program = db.StringField(verbose_name='Программа', max_length=8, required=True, choices=PROGRAM)
     subgroups = db.IntField(verbose_name='Подгруппы', requred=True)
     students = db.IntField(verbose_name='Студенты', requred=True)
 
+    def __str__(self):
+        return self.name
 
-# class Course(Model):
-#     CONTROLS = (
-#         ('Эк', 'Экзамен'),
-#         ('ЗаО', 'Зачёт с оценкой'),
-#         ('За', 'Зачёт'),
-#         ('КП', 'Курсовой проект'),
-#     )
-#     code = CharField('название', max_length=15)
-#     name = CharField('название', max_length=50)
-#     study_group = ForeignKey('StudyGroup', verbose_name='учебная группа', on_delete=CASCADE)
-#     control = CharField('название', max_length=3, choices=CONTROLS)
-#     hour_lecture = IntegerField('лек.', blank=0)  # Лекции
-#     hour_practice = IntegerField('прак.', blank=0)  # Практические занятия
-#     hour_lab_work = IntegerField('лаб.', blank=0)  # Лабораторные работы
-#     hour_cons = IntegerField('конс.', blank=0)  # Предэкзаменационные консультации
-#     hour_exam = IntegerField('экз.', blank=0)  # Экзамен
-#     hour_test = IntegerField('К.Р.', blank=0)  # Проверка РГР, рефератов и контрольных работ
-#     hour_home = IntegerField('СРС', blank=0)  # Проверка СРС
-#     hour_rating = IntegerField('БРС', blank=0)  # Ведение БРС
-#
-#     class Meta:
-#         ordering = ['name']
-#         verbose_name = 'дисциплина'
-#         verbose_name_plural = 'дисциплины'
-#
-#     def __str__(self):
-#         return self.name
+
+class Course(db.Document):
+    CONTROLS = (
+        ('Эк', 'Экзамен'),
+        ('ЗаО', 'Зачёт с оценкой'),
+        ('За', 'Зачёт'),
+        ('КП', 'Курсовой проект'),
+    )
+    code = db.StringField(verbose_name='Код', max_length=15, required=True)
+    name = db.StringField(verbose_name='Название', max_length=50, required=True)
+    student_group = db.ReferenceField('StudentGroup', verbose_name='Учеб. группа', required=True, on_delete=CASCADE)
+    person = db.ReferenceField('Person', verbose_name='Преподаватель', on_delete=NULLIFY)
+    control = db.StringField(verbose_name='Контроль', max_length=3, required=True, choices=CONTROLS)
+    hour_lecture = db.IntField(verbose_name='Лекции')  # Лекции
+    hour_practice = db.IntField(verbose_name='Практики')  # Практические занятия
+    hour_lab_work = db.IntField(verbose_name='Лаб. работы')  # Лабораторные работы
+    hour_cons = db.IntField(verbose_name='Предэкз. конс.')  # Предэкзаменационные консультации
+    hour_exam = db.IntField(verbose_name='Часы экз.')  # Экзамен
+    hour_test = db.IntField(verbose_name='Проверка КР')  # Проверка РГР, рефератов и контрольных работ
+    hour_home = db.IntField(verbose_name='СРС')  # Проверка СРС
+    hour_rating = db.IntField(verbose_name='БРС')  # Ведение БРС
+
+    def __str__(self):
+        return self.name
