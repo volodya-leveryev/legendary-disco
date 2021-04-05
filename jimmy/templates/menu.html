@@ -1,31 +1,33 @@
 {% extends 'page.html' %}
 {% block body %}
 <nav class="navbar navbar-expand navbar-light bg-light">
-    <div class="container">
+    <div class="container-fluid">
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
                     <a class="nav-link{% if active_page == 'home' %} active{% endif %}" href="{{ url_for('home') }}">КУП</a>
                 </li>
+                {# <!-- TODO: доделать формы редактирования и убрать админку
                 <li class="nav-item dropdown">
                     <a class="nav-link{% if active_page == 'reference' %} active{% endif %} dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Справочники
                     </a>
-                    {# <!-- TODO: доделать формы редактирования и убрать админку
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{{ url_for('person_list') }}">Люди</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('job_assignment_list') }}">Преподаватели</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('student_group_list') }}">Учебные группы</a></li>
-                    </ul> --> #}
+                    </ul>
                 </li>
+                --> #}
             </ul>
             <ul class="navbar-nav">
-                <li class="nav-item"><a href="{{ url_for('admin.index') }}" class="nav-link">Администрирование</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {{ session['user']['str'] }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a href="{{ url_for('admin.index') }}" class="dropdown-item">Админка</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выход</a></li>
                     </ul>
                 </li>
@@ -33,7 +35,7 @@
         </div>
     </div>
 </nav>
-<div class="container">
+<div class="container-fluid">
     {% block content %}{% endblock %}
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@ from mongoengine import CASCADE, NULLIFY
 db = MongoEngine()
 
 
-class Person(db.Document):
+class Degree(db.EmbeddedDocument):
     DEGREES = (
         ('—', 'Без учёной степени'),
         ('к.арх.', 'Кандидат архитектуры'),
@@ -56,19 +56,58 @@ class Person(db.Document):
         ('д.э.н.', 'Доктор экономических наук'),
         ('д.ю.н.', 'Доктор юридических наук'),
     )
+    date = db.DateTimeField(verbose_name='Дата')
+    degree = db.StringField(verbose_name='Уч. степень', max_length=16, choices=DEGREES)
 
+
+class Title(db.EmbeddedDocument):
     TITLES = (
         ('—', 'Без учёного звания'),
         ('доц.', 'Доцент'),
         ('проф.', 'Профессор'),
     )
+    date = db.DateTimeField(verbose_name='Дата')
+    title = db.StringField(verbose_name='Уч. звание', max_length=8, choices=TITLES)
 
+
+class Job(db.EmbeddedDocument):
+    DEPARTMENTS = (
+        ('АиГ', 'Кафедра алгебры и геометрии'),
+        ('ВМ', 'Кафедра высшей математики'),
+        ('ДУ', 'Кафедра дифференциальных уравнений'),
+        ('ИТ', 'Кафедра информационных технологий'),
+        ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
+        ('МА', 'Кафедра математического анализа'),
+        ('МПМ', 'Кафедра методики преподавания математики'),
+        ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
+        ('ПМ', 'Кафедра прикладной математики'),
+        ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
+    )
+
+    POSITIONS = (
+        ('асс.', 'Ассистент'),
+        ('ст.пр.', 'Старший преподаватель'),
+        ('доц.', 'Доцент'),
+        ('проф.', 'Профессор'),
+        ('зав.каф.', 'Заведующий кафедрой'),
+    )
+
+    date = db.DateTimeField(verbose_name='Дата')
+    department = db.StringField(verbose_name='Кафедра', max_length=5, required=True, choices=DEPARTMENTS)
+    position = db.StringField(verbose_name='Должность', max_length=10, required=True, choices=POSITIONS)
+    wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
+
+
+class Person(db.Document):
     last_name = db.StringField(verbose_name='Фамилия', max_length=32, required=True)
     first_name = db.StringField(verbose_name='Имя', max_length=32, required=True)
     second_name = db.StringField(verbose_name='Отчество', max_length=32)
     emails = db.ListField(db.StringField(max_length=32), verbose_name='Почта')
-    degree = db.StringField(verbose_name='Уч. степень', max_length=16, choices=DEGREES)
-    title = db.StringField(verbose_name='Уч. звание', max_length=8, choices=TITLES)
+    degree = db.StringField(verbose_name='Уч. степень', max_length=16)
+    degree_history = db.ListField(db.EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
+    title = db.StringField(verbose_name='Уч. звание', max_length=8)
+    title_history = db.ListField(db.EmbeddedDocumentField(Title), verbose_name='Уч. звание')
+    job_history = db.ListField(db.EmbeddedDocumentField(Job), verbose_name='Должность')
 
     @property
     def fio(self):

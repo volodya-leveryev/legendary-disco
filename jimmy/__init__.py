@@ -4,7 +4,7 @@ from flask_admin.menu import MenuLink
 
 from jimmy import auth, models, views
 
-admin = Admin()
+admin = Admin(name='Админка', template_mode='bootstrap3')
 
 
 def create_app():
@@ -25,10 +25,11 @@ def create_app():
     # app.add_url_rule('/student_group/list/', 'student_group_list', views.student_group_list)
 
     admin.init_app(app)
+    admin.add_view(views.LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
     admin.add_view(views.PersonView(models.Person, 'Люди'))
     admin.add_view(views.TeacherView(models.JobAssignment, 'Преподаватели'))
     admin.add_view(views.StudentGroupView(models.StudentGroup, 'Учебные группы'))
     admin.add_view(views.CourseView(models.Course, 'Дисциплины'))
-    admin.add_link(MenuLink(name='Основная', url='/'))
+    admin.add_link(MenuLink(name='Сайт', url='/'))
 
     return app

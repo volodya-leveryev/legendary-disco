@@ -1,5 +1,15 @@
+from xml.etree import ElementTree
+
 from flask import redirect, render_template, request, session, url_for
+from flask_admin import BaseView, expose
 from flask_admin.contrib.mongoengine import ModelView
+
+
+NAMESPACES = {
+    'msdata': 'urn:schemas-microsoft-com:xml-msdata',
+    'diffgr': 'urn:schemas-microsoft-com:xml-diffgram-v1',
+    'mmisdb': 'http://tempuri.org/dsMMISDB.xsd',
+}
 
 
 def login_required(func):
@@ -44,7 +54,7 @@ def home_page():
 #     return render_template('student_group_list.html', student_groups=student_groups)
 
 
-class AuthModelView(ModelView):
+class Auth:
     def is_accessible(self):
         return 'user' in session
 
@@ -52,18 +62,22 @@ class AuthModelView(ModelView):
         return redirect(url_for('auth.login_page', next=request.url))
 
 
-class PersonView(AuthModelView):
-    column_list = ('fio', 'emails', 'degree', 'title')
+class LoadPlanView(Auth, BaseView):
+    @expose('/')
+    def index(self):
+        return self.render('load_plan.html')
+
+
+class PersonView(Auth, ModelView):
+    column_list = ('fio', 'emails')
     column_default_sort = 'last_name,first_name,second_name'
     column_labels = {
         'fio': 'ФИО',
         'emails': 'Почта',
-        'degree': 'Учёная степень',
-        'title': 'Учёное звание',
     }
 
 
-class TeacherView(AuthModelView):
+class TeacherView(Auth, ModelView):
     column_default_sort = 'person'
     column_labels = {
         'person': 'Преподаватель',
@@ -73,7 +87,7 @@ class TeacherView(AuthModelView):
     }
 
 
-class StudentGroupView(AuthModelView):
+class StudentGroupView(Auth, ModelView):
     column_default_sort = 'name'
     column_labels = {
         'name': 'Название',
@@ -82,8 +96,12 @@ class StudentGroupView(AuthModelView):
         'students': 'Студенты',
     }
 
+    def load_plan(self, filename):
+        root = ElementTree.parse(filename).getroot()
+        plan = root.find('./{{{diffgr}}}diffgram/{{{mmisdb}}}dsMMISDB'.format(**NAMESPACES))
 
-class CourseView(AuthModelView):
+
+class CourseView(Auth, ModelView):
     column_default_sort = 'student_group,code'
     column_exclude_list = [
         'control',        # Форма контроля
