@@ -103,9 +103,7 @@ class Person(db.Document):
     first_name = db.StringField(verbose_name='Имя', max_length=32, required=True)
     second_name = db.StringField(verbose_name='Отчество', max_length=32)
     emails = db.ListField(db.StringField(max_length=32), verbose_name='Почта')
-    degree = db.StringField(verbose_name='Уч. степень', max_length=16)
     degree_history = db.ListField(db.EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
-    title = db.StringField(verbose_name='Уч. звание', max_length=8)
     title_history = db.ListField(db.EmbeddedDocumentField(Title), verbose_name='Уч. звание')
     job_history = db.ListField(db.EmbeddedDocumentField(Job), verbose_name='Должность')
 
@@ -118,50 +116,6 @@ class Person(db.Document):
 
     def __str__(self):
         return self.fio
-
-
-class JobAssignment(db.Document):
-    DEPARTMENTS = (
-        ('АиГ', 'Кафедра алгебры и геометрии'),
-        ('ВМ', 'Кафедра высшей математики'),
-        ('ДУ', 'Кафедра дифференциальных уравнений'),
-        ('ИТ', 'Кафедра информационных технологий'),
-        ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
-        ('МА', 'Кафедра математического анализа'),
-        ('МПМ', 'Кафедра методики преподавания математики'),
-        ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
-        ('ПМ', 'Кафедра прикладной математики'),
-        ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
-    )
-
-    POSITIONS = (
-        ('—', 'Не работает'),
-        ('асс.', 'Ассистент'),
-        ('ст.пр.', 'Старший преподаватель'),
-        ('доц.', 'Доцент'),
-        ('проф.', 'Профессор'),
-        ('зав.каф.', 'Заведующий кафедрой'),
-    )
-
-    SEMESTERS = (
-        ('20-21/1', '2020-21 уч.г., 1 семестр'),
-        ('20-21/2', '2020-21 уч.г., 2 семестр'),
-    )
-
-    person = db.ReferenceField(Person, verbose_name='Преподаватель', required=True)
-    department = db.StringField(verbose_name='Кафедра', max_length=5, required=True, choices=DEPARTMENTS)
-    position = db.StringField(verbose_name='Должность', max_length=10, required=True, choices=POSITIONS)
-    wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
-
-    def __str__(self):
-        result = self.person.fio
-        if self.wage_rate == 1:
-            result += f', {self.position} каф. {self.department}'
-        elif self.wage_rate == 0.5:
-            result += f', 0.5 ст. {self.position} каф. {self.department}'
-        else:
-            result += f', {self.wage_rate:.2f} ст. {self.position} каф. {self.department}'
-        return result
 
 
 class StudentGroup(db.Document):

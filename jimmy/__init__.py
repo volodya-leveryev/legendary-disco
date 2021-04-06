@@ -27,7 +27,6 @@ def create_app():
     admin.init_app(app)
     admin.add_view(views.LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
     admin.add_view(views.PersonView(models.Person, 'Люди'))
-    admin.add_view(views.TeacherView(models.JobAssignment, 'Преподаватели'))
     admin.add_view(views.StudentGroupView(models.StudentGroup, 'Учебные группы'))
     admin.add_view(views.CourseView(models.Course, 'Дисциплины'))
     admin.add_link(MenuLink(name='Сайт', url='/'))
