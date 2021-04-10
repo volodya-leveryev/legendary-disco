@@ -1,15 +1,10 @@
-from xml.etree import ElementTree
-
 from flask import redirect, render_template, request, session, url_for
 from flask_admin import BaseView, expose
 from flask_admin.contrib.mongoengine import ModelView
+from werkzeug.datastructures import CombinedMultiDict
 
-
-NAMESPACES = {
-    'msdata': 'urn:schemas-microsoft-com:xml-msdata',
-    'diffgr': 'urn:schemas-microsoft-com:xml-diffgram-v1',
-    'mmisdb': 'http://tempuri.org/dsMMISDB.xsd',
-}
+from jimmy.forms import RupForm
+from jimmy.models import StudentGroup, load_rup
 
 
 def login_required(func):
@@ -63,27 +58,24 @@ class Auth:
 
 
 class LoadPlanView(Auth, BaseView):
-    @expose('/')
+    @expose('/', methods=('GET', 'POST'))
     def index(self):
-        return self.render('load_plan.html')
+        form = RupForm(CombinedMultiDict((request.files, request.form)))
+        form.student_group.choices = [(sg.id, sg.name) for sg in StudentGroup.objects.all()]
+        if form.validate_on_submit():
+            sg_id = form.student_group.data
+            student_group = StudentGroup.objects.get(id=sg_id)
+            load_rup(form.rup_file.data, student_group)
+            return redirect(url_for('admin.index'))
+        return self.render('load_plan.html', form=form)
 
 
 class PersonView(Auth, ModelView):
     column_list = ('fio', 'emails')
-    column_default_sort = 'last_name,first_name,second_name'
+    column_default_sort = [('last_name', False), ('first_name', False), ('second_name', False)]
     column_labels = {
         'fio': 'ФИО',
         'emails': 'Почта',
-    }
-
-
-class TeacherView(Auth, ModelView):
-    column_default_sort = 'person'
-    column_labels = {
-        'person': 'Преподаватель',
-        'department': 'Кафедра',
-        'position': 'Должность',
-        'wage_rate': 'Ставка',
     }
 
 
@@ -96,23 +88,15 @@ class StudentGroupView(Auth, ModelView):
         'students': 'Студенты',
     }
 
-    def load_plan(self, filename):
-        root = ElementTree.parse(filename).getroot()
-        plan = root.find('./{{{diffgr}}}diffgram/{{{mmisdb}}}dsMMISDB'.format(**NAMESPACES))
-
 
 class CourseView(Auth, ModelView):
-    column_default_sort = 'student_group,code'
+    column_default_sort = [('student_group', False), ('semester', False)]
     column_exclude_list = [
-        'control',        # Форма контроля
-        'hour_lecture',   # Лекции
-        'hour_practice',  # Практические занятия
-        'hour_lab_work',  # Лабораторные работы
-        'hour_cons',      # Предэкзаменационные консультации
-        'hour_exam',      # Экзамен
-        'hour_test',      # Проверка РГР, рефератов и контрольных работ
-        'hour_home',      # Проверка СРС
-        'hour_rating',    # Ведение БРС
+        # 'hour_cons',
+        # 'hour_test',
+        # 'hour_rating',
+        'subject',
+        'teacher',
     ]
     column_labels = {
         'code': 'Код',
