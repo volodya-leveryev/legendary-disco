@@ -207,16 +207,8 @@ class StudentGroup(db.Document):
         date = db.DateTimeField(verbose_name='Дата')
         count = db.IntField(verbose_name='Количество', requred=True)
 
-    PROGRAM = (
-        ('09.03.01', 'Бак. ИВТ'),
-        ('02.03.02', 'Бак. ФИИТ'),
-        ('09.04.01', 'Маг. ИВТ'),
-        ('02.04.02', 'Маг. ФИИТ'),
-    )
-
     name = db.StringField(verbose_name='Название', max_length=20, required=True)
-    program = db.StringField(verbose_name='Программа', max_length=8, choices=PROGRAM)
-    program2 = db.ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
+    program = db.ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
     subgroups = db.IntField(verbose_name='Подгруппы', requred=True)
     subgroups_history = db.ListField(db.EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
     students = db.IntField(verbose_name='Студенты', requred=True)
