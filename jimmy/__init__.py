@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_admin import Admin
+from flask_admin.contrib.mongoengine import ModelView
 from flask_admin.menu import MenuLink
 
 from jimmy import auth, models, views
@@ -26,6 +27,7 @@ def create_app():
 
     admin.init_app(app)
     admin.add_view(views.LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
+    admin.add_view(ModelView(models.EducationProgram, 'Программы обучения'))
     admin.add_view(views.PersonView(models.Person, 'Люди'))
     admin.add_view(views.StudentGroupView(models.StudentGroup, 'Учебные группы'))
     admin.add_view(views.CourseView(models.Course, 'Курсы обучения'))

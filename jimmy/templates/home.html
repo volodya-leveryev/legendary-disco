@@ -59,6 +59,33 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ course.code }}</td>
+                    <td>{{ course.name }}</td>
+                    <td></td>
+                    <td>{{ course.student_group }}</td>
+                    <td>{{ course.student_group.students }}</td>
+                    <td>{{ course.student_group.subgroups }}</td>
+                    <td>{{ course.hour_lecture }}</td>
+                    <td>{{ course.hour_practice }}</td>
+                    <td>{{ course.hour_lab_work }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ course.control }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>

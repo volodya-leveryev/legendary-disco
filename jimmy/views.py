@@ -1,10 +1,10 @@
 from flask import redirect, render_template, request, session, url_for
 from flask_admin import BaseView, expose
-from flask_admin.contrib.mongoengine import ModelView, filters
+from flask_admin.contrib.mongoengine import ModelView
 from werkzeug.datastructures import CombinedMultiDict
 
 from jimmy.forms import RupForm
-from jimmy.models import StudentGroup, load_rup
+from jimmy.models import Course, StudentGroup, load_rup
 
 
 def login_required(func):
@@ -17,7 +17,8 @@ def login_required(func):
 
 @login_required
 def home_page():
-    return render_template('home.html')
+    courses = Course.objects.filter(teacher=session['user']['id'])
+    return render_template('home.html', courses=courses)
 
 
 # TODO: доделать формы редактирования и убрать админку
@@ -71,12 +72,15 @@ class LoadPlanView(Auth, BaseView):
 
 
 class PersonView(Auth, ModelView):
-    column_list = ('fio', 'emails')
     column_default_sort = [('last_name', False), ('first_name', False), ('second_name', False)]
     column_labels = {
         'fio': 'ФИО',
         'emails': 'Почта',
+        'degree': 'Уч. степень',
+        'title': 'Уч. звание',
+        'job': 'Должность',
     }
+    column_list = ('fio', 'emails', 'degree', 'title', 'job')
 
 
 class StudentGroupView(Auth, ModelView):
@@ -87,6 +91,7 @@ class StudentGroupView(Auth, ModelView):
         'subgroups': 'Подгруппы',
         'students': 'Студенты',
     }
+    column_list = ('name', 'program2', 'subgroups2', 'students2')
 
 
 class CourseView(Auth, ModelView):
