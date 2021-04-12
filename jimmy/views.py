@@ -1,6 +1,6 @@
 from flask import redirect, render_template, request, session, url_for
 from flask_admin import BaseView, expose
-from flask_admin.contrib.mongoengine import ModelView
+from flask_admin.contrib.mongoengine import ModelView, filters
 from werkzeug.datastructures import CombinedMultiDict
 
 from jimmy.forms import RupForm
@@ -92,12 +92,10 @@ class StudentGroupView(Auth, ModelView):
 class CourseView(Auth, ModelView):
     column_default_sort = [('student_group', False), ('semester', False)]
     column_exclude_list = [
-        # 'hour_cons',
-        # 'hour_test',
-        # 'hour_rating',
         'subject',
         'teacher',
     ]
+    column_filters = ('semester',)
     column_labels = {
         'code': 'Код',
         'name': 'Название',

@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, List
 from xml.etree import ElementTree
 
 from flask_mongoengine import MongoEngine
@@ -7,11 +7,11 @@ from mongoengine import CASCADE, NULLIFY
 
 db = MongoEngine()
 
-NAMESPACES = {
-    'msdata': 'urn:schemas-microsoft-com:xml-msdata',
-    'diffgr': 'urn:schemas-microsoft-com:xml-diffgram-v1',
-    'mmisdb': 'http://tempuri.org/dsMMISDB.xsd',
-}
+NS_DIFFGR = 'urn:schemas-microsoft-com:xml-diffgram-v1'
+NS_MMISDB = 'http://tempuri.org/dsMMISDB.xsd'
+
+PLAN_SUBJECT = '2'
+PLAN_PRACTICE = '3'
 
 WT_LECTURE = 'Лек'
 WT_LABWORK = 'Лаб'
@@ -24,6 +24,7 @@ CT_EXAM = 'Эк'
 CT_CREDIT_GRADE = 'ЗаО'
 CT_CREDIT = 'За'
 CT_COURSEWORK = 'КП'
+
 
 class Degree(db.EmbeddedDocument):
     """
@@ -225,41 +226,42 @@ class Course(db.Document):
         return f'{self.student_group}, {self.semester}: {self.name}'
 
 
-def get_subjects(rup) -> Dict[str, Dict[str, Dict[int, Dict[str, int]]]]:
+def get_subjects(rup) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:
     """ Читаем данные РУП из файла PLX """
 
     root = ElementTree.fromstring(rup.read())
-    plan = root.find('./{{{diffgr}}}diffgram/{{{mmisdb}}}dsMMISDB'.format(**NAMESPACES))
+    plan = root.find(f'./{{{NS_DIFFGR}}}diffgram/{{{NS_MMISDB}}}dsMMISDB')
 
     # Читаем справочник видов работ, он пригодится
     work_abbr = {}
-    path = './{{{mmisdb}}}СправочникВидыРабот'.format(**NAMESPACES)
-    for work_type_elem in plan.findall(path):
-        code = work_type_elem.attrib['Код']
-        work_abbr[code] = work_type_elem.attrib['Аббревиатура']
+    for work_type_elem in plan.findall(f'./{{{NS_MMISDB}}}СправочникВидыРабот'):
+        work_code = work_type_elem.attrib['Код']
+        work_abbr[work_code] = work_type_elem.attrib['Аббревиатура']
 
-    # Читаем дисциплины
+    # Читаем дисциплины и практики
     subjects = {}
-    path = './{{{mmisdb}}}ПланыСтроки'.format(**NAMESPACES)
-    for subj_elem in plan.findall(path):
-        code: str = subj_elem.attrib['Код']
-        subjects[code] = {
+    for subj_elem in plan.findall(f'./{{{NS_MMISDB}}}ПланыСтроки'):
+        if subj_elem.attrib['ТипОбъекта'] not in (PLAN_SUBJECT, PLAN_PRACTICE):
+            continue
+        subjects[subj_elem.attrib['Код']] = {
             'code': subj_elem.attrib['ДисциплинаКод'],
             'name': subj_elem.attrib['Дисциплина'],
             'semesters': {},
         }
 
     # Читаем трудоемкость дисциплин по семестрам и видам работ
-    path = './{{{mmisdb}}}ПланыНовыеЧасы[@КодТипаЧасов="1"]'.format(**NAMESPACES)
+    path = f'./{{{NS_MMISDB}}}ПланыНовыеЧасы[@КодТипаЧасов="1"]'
     for hour_elem in plan.findall(path):
+        subject = subjects.get(hour_elem.attrib['КодОбъекта'])
+        if subject is None:
+            continue
         year = int(hour_elem.attrib['Курс'])
         semester = (year - 1) * 2 + int(hour_elem.attrib['Семестр'])
         work_type = work_abbr[hour_elem.attrib['КодВидаРаботы']]
-        subject = subjects[hour_elem.attrib['КодОбъекта']]
         subject['semesters'].setdefault(semester, {})
-        subject['semesters'][semester][work_type] = hour_elem.attrib['Количество']
+        subject['semesters'][semester][work_type] = int(hour_elem.attrib['Количество'])
 
-    return subjects
+    return list(subjects.values())
 
 
 def load_rup(rup, student_group):
@@ -272,7 +274,7 @@ def load_rup(rup, student_group):
     old_courses = list(Course.objects(student_group=student_group))
 
     # Просматриваем дисциплины и их трудоемкость по семестрам
-    for subject in subjects.values():
+    for subject in subjects:
         for semester, hours in subject['semesters'].items():
 
             # Просматриваем существующие курсы данной группы
