@@ -190,7 +190,6 @@ class EducationProgram(db.Document):
 class StudentGroup(db.Document):
     """
     Учебная группа студентов
-    TODO: нужно сделать program — справочником
     """
 
     class Subgroups(db.EmbeddedDocument):
@@ -208,19 +207,18 @@ class StudentGroup(db.Document):
         count = db.IntField(verbose_name='Количество', requred=True)
 
     name = db.StringField(verbose_name='Название', max_length=20, required=True)
+    year = db.IntField(verbose_name='Год поступления', required=True)
     program = db.ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
-    subgroups = db.IntField(verbose_name='Подгруппы', requred=True)
     subgroups_history = db.ListField(db.EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
-    students = db.IntField(verbose_name='Студенты', requred=True)
     students_history = db.ListField(db.EmbeddedDocumentField(Students), verbose_name='Студенты')
 
     @property
-    def subgroups2(self):
+    def subgroups(self):
         subgroups_list = sorted(self.subgroups_history, key=lambda t: t.date)[-1:]
         return subgroups_list[0].count if subgroups_list else ''
 
     @property
-    def students2(self):
+    def students(self):
         students_list = sorted(self.students_history, key=lambda t: t.date)[-1:]
         return students_list[0].count if students_list else ''
 

@@ -88,10 +88,11 @@ class StudentGroupView(Auth, ModelView):
     column_labels = {
         'name': 'Название',
         'program': 'Программа',
+        'year': 'Год поступления',
         'subgroups': 'Подгруппы',
         'students': 'Студенты',
     }
-    column_list = ('name', 'program', 'subgroups2', 'students2')
+    column_list = ('name', 'program', 'year', 'subgroups', 'students')
 
 
 class CourseView(Auth, ModelView):
