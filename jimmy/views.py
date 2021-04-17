@@ -16,8 +16,15 @@ def login_required(func):
 
 
 @login_required
+def semester_view(year, half):
+    session['sem'] = year * 2 + half - 1
+    next_url = request.args.get('next', url_for('home'))
+    return redirect(next_url)
+
+
+@login_required
 def home_page():
-    courses = Course.objects.filter(teacher=session['user']['id'])
+    courses = Course.objects.filter(teacher=session['user']['id'], semester=session['sem'])
     return render_template('home.html', courses=courses)
 
 
@@ -50,6 +57,15 @@ def home_page():
 #     return render_template('student_group_list.html', student_groups=student_groups)
 
 
+def semester_filter(s):
+    if s and isinstance(s, int):
+        year, half = divmod(s, 2)
+    else:
+        year, half = 2021, 0
+    sem = 'осень' if half else 'весна'
+    return f'{year}, {sem}'
+
+
 class Auth:
     def is_accessible(self):
         return 'user' in session
@@ -73,38 +89,15 @@ class LoadPlanView(Auth, BaseView):
 
 class PersonView(Auth, ModelView):
     column_default_sort = [('last_name', False), ('first_name', False), ('second_name', False)]
-    column_labels = {
-        'fio': 'ФИО',
-        'emails': 'Почта',
-        'degree': 'Уч. степень',
-        'title': 'Уч. звание',
-        'job': 'Должность',
-    }
     column_list = ('fio', 'emails', 'degree', 'title', 'job')
 
 
 class StudentGroupView(Auth, ModelView):
-    column_default_sort = 'name'
-    column_labels = {
-        'name': 'Название',
-        'program': 'Программа',
-        'year': 'Год поступления',
-        'subgroups': 'Подгруппы',
-        'students': 'Студенты',
-    }
+    column_default_sort = [('name', False)]
     column_list = ('name', 'program', 'year', 'subgroups', 'students')
 
 
 class CourseView(Auth, ModelView):
     column_default_sort = [('student_group', False), ('semester', False)]
-    column_exclude_list = [
-        'subject',
-        'teacher',
-    ]
     column_filters = ('semester',)
-    column_labels = {
-        'code': 'Код',
-        'name': 'Название',
-        'student_group': 'Учебная группа',
-        'person': 'Преподаватель',
-    }
+    column_list = ('student_group', 'code', 'name', 'semester_str', 'hour_lecture', 'hour_lab_work', 'hour_practice')

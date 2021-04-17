@@ -5,7 +5,9 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link{% if active_page == 'home' %} active{% endif %}" href="{{ url_for('home') }}">КУП</a>
+                    <a class="nav-link{% if active_page == 'home' %} active{% endif %}" href="{{ url_for('home') }}">
+                        КУП
+                    </a>
                 </li>
                 {# <!-- TODO: доделать формы редактирования и убрать админку
                 <li class="nav-item dropdown">
@@ -26,6 +28,14 @@
                         {{ session['user']['str'] }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li>
+                            <a href="#" class="dropdown-item" onclick="showSemesterModal();">
+                                {{ session['sem'] | semester }}
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li><a href="{{ url_for('admin.index') }}" class="dropdown-item">Админка</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выход</a></li>
@@ -38,4 +48,52 @@
 <div class="container-fluid">
     {% block content %}{% endblock %}
 </div>
+<div class="modal fade" id="selectSemester" tabindex="-1" aria-labelledby="selectSemester" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Выбор семестра</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Отмена"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <button class="btn btn-outline-secondary" type="button" onclick="new_sem -= 1; refreshModal();">&lt;&lt;</button>
+                    <input type="text" class="form-control text-center" id="showSemester" value="{{ session['sem'] | semester }}" disabled>
+                    <button class="btn btn-outline-secondary" type="button" onclick="new_sem += 1; refreshModal();">&gt;&gt;</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="changeSemester()">Выбрать</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let old_sem = {{ session['sem'] }};
+let new_sem = old_sem;
+
+function refreshModal() {
+    let half = new_sem % 2;
+    let year = (new_sem - half) / 2;
+    let elem = document.getElementById("showSemester");
+    elem.value = year + ", " + ((half == 1) ? "осень" : "весна");
+}
+
+function showSemesterModal() {
+    new_sem = old_sem;
+    refreshModal();
+    let modal = new bootstrap.Modal(document.getElementById("selectSemester"), {keyboard: false});
+    modal.show();
+}
+
+function changeSemester(change) {
+    let half = new_sem % 2;
+    let year = (new_sem - half) / 2;
+    window.location.href = "/semester/" + year + "/" + (half + 1) + "/";
+}
+
+</script>
 {% endblock %}

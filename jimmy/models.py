@@ -271,6 +271,12 @@ class Course(db.Document):
     subject = db.ReferenceField('Subject', verbose_name='Дисциплина', on_delete=NULLIFY)
     teacher = db.ReferenceField('Person', verbose_name='Преподаватель', on_delete=NULLIFY)
 
+    @property
+    def semester_str(self):
+        year, half = divmod(self.semester, 2)
+        sem = 'осень' if half else 'весна'
+        return f'{year}, {sem}'
+
     def __str__(self):
         return f'{self.student_group}, {self.semester}: {self.name}'
 
@@ -345,7 +351,7 @@ def load_rup(rup, student_group):
 
             # Заполняем данные курса
             course.student_group = student_group
-            course.semester = semester
+            course.semester = student_group.year * 2 + semester
             course.code = subject['code']
             course.name = subject['name']
             course.hour_lecture = hours.get(WT_LECTURE, 0)

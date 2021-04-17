@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, redirect, render_template, request, session, url_for
 
 from jimmy.models import Person
 
@@ -18,6 +18,17 @@ def init(app):
     oauth.register('google', server_metadata_url=google_url, client_kwargs={'scope': 'openid email'})
 
 
+def init_session(user_email):
+    user = Person.objects(emails=user_email)
+    if not user:
+        abort(401)
+    session['user'] = {
+        'id': str(user[0].id),
+        'str': str(user[0]),
+    }
+    session['sem'] = 2021 * 2
+
+
 @bp.route('/login/')
 def login_page():
     return render_template('login.html')
@@ -34,13 +45,7 @@ def azure_init():
 def azure_done():
     token = oauth.azure.authorize_access_token()
     userinfo = oauth.azure.parse_id_token(token)
-    persons = Person.objects(emails=userinfo.get('email'))
-    if not persons:
-        return redirect(url_for('auth.login_page'))
-    session['user'] = {
-        'id': str(persons[0].id),
-        'str': str(persons[0]),
-    }
+    init_session(userinfo.get('email'))
     return redirect(url_for('home'))
 
 
@@ -55,13 +60,7 @@ def google_init():
 def google_done():
     token = oauth.google.authorize_access_token()
     userinfo = oauth.google.parse_id_token(token)
-    persons = Person.objects(emails=userinfo.get('email'))
-    if not persons:
-        return redirect(url_for('auth.login_page'))
-    session['user'] = {
-        'id': str(persons[0].id),
-        'str': str(persons[0]),
-    }
+    init_session(userinfo.get('email'))
     return redirect(url_for('home'))
 
 

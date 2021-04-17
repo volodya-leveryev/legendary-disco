@@ -17,7 +17,9 @@ def create_app():
     auth.init(app)
     app.register_blueprint(auth.bp, url_prefix='/auth')
 
+    app.jinja_env.filters['semester'] = views.semester_filter
     app.add_url_rule('/', 'home', views.home_page)
+    app.add_url_rule('/semester/<int:year>/<int:half>/', 'semester', views.semester_view)
 
     # TODO: доделать формы редактирования и убрать админку
     # app.add_url_rule('/person/list/', 'person_list', views.person_list)
