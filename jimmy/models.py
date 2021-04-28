@@ -1,9 +1,11 @@
+from io import TextIOBase
 from typing import Dict, Union, List
 from xml.etree import ElementTree
 
 from flask_mongoengine import MongoEngine
 from jellyfish import jaro_winkler_similarity
-from mongoengine import CASCADE, NULLIFY
+from mongoengine import (CASCADE, NULLIFY, BooleanField, DecimalField, DateTimeField, Document, EmbeddedDocument,
+                         EmbeddedDocumentField, IntField, ListField, ReferenceField, StringField)
 
 db = MongoEngine()
 
@@ -25,142 +27,159 @@ CT_CREDIT_GRADE = 'ЗаО'
 CT_CREDIT = 'За'
 CT_COURSEWORK = 'КП'
 
+DEGREES = (
+    ('к.арх.', 'Кандидат архитектуры'),
+    ('к.б.н.', 'Кандидат биологических наук'),
+    ('к.вет.н.', 'Кандидат ветеринарных наук'),
+    ('к.воен.н.', 'Кандидат военных наук'),
+    ('к.г.н.', 'Кандидат географических наук'),
+    ('к.г.-м.н.', 'Кандидат геолого-минералогических наук'),
+    ('к.иск.', 'Кандидат искусствоведения'),
+    ('к.и.н.', 'Кандидат исторических наук'),
+    ('к.культ.', 'Кандидат культурологии'),
+    ('к.м.н.', 'Кандидат медицинских наук'),
+    ('к.пед.н.', 'Кандидат педагогических наук'),
+    ('к.полит.н.', 'Кандидат политических наук'),
+    ('к.п.н.', 'Кандидат психологических наук'),
+    ('к.с.-х.н.', 'Кандидат сельскохозяйственных наук'),
+    ('к.социол.н.', 'Кандидат социологических наук'),
+    ('к.теол.н.', 'Кандидат теологических наук'),
+    ('к.т.н.', 'Кандидат технических наук'),
+    ('к.фарм.н.', 'Кандидат фармацевтических наук'),
+    ('к.ф.-м.н.', 'Кандидат физико-математических наук'),
+    ('к.ф.н.', 'Кандидат филологических наук'),
+    ('к.филос.н.', 'Кандидат философских наук'),
+    ('к.х.н.', 'Кандидат химических наук'),
+    ('к.э.н.', 'Кандидат экономических наук'),
+    ('к.ю.н.', 'Кандидат юридических наук'),
+    ('д.арх.', 'Доктор архитектуры'),
+    ('д.б.н.', 'Доктор биологических наук'),
+    ('д.вет.н.', 'Доктор ветеринарных наук'),
+    ('д.воен.н.', 'Доктор военных наук'),
+    ('д.г.н.', 'Доктор географических наук'),
+    ('д.г.-м.н.', 'Доктор геолого-минералогических наук'),
+    ('д.иск.', 'Доктор искусствоведения'),
+    ('д.и.н.', 'Доктор исторических наук'),
+    ('д.культ.', 'Доктор культурологии'),
+    ('д.м.н.', 'Доктор медицинских наук'),
+    ('д.пед.н.', 'Доктор педагогических наук'),
+    ('д.полит.н.', 'Доктор политических наук'),
+    ('д.п.н.', 'Доктор психологических наук'),
+    ('д.с.-х.н.', 'Доктор сельскохозяйственных наук'),
+    ('д.социол.н.', 'Доктор социологических наук'),
+    ('д.теол.н.', 'Доктор теологических наук'),
+    ('д.т.н.', 'Доктор технических наук'),
+    ('д.фарм.н.', 'Доктор фармацевтических наук'),
+    ('д.ф.-м.н.', 'Доктор физико-математических наук'),
+    ('д.ф.н.', 'Доктор филологических наук'),
+    ('д.филос.н.', 'Доктор философских наук'),
+    ('д.х.н.', 'Доктор химических наук'),
+    ('д.э.н.', 'Доктор экономических наук'),
+    ('д.ю.н.', 'Доктор юридических наук'),
+)
 
-class Person(db.Document):
+TITLES = (
+    ('доц.', 'Доцент'),
+    ('проф.', 'Профессор'),
+)
+
+DEPARTMENTS = (
+    ('АиГ', 'Кафедра алгебры и геометрии'),
+    ('ВМ', 'Кафедра высшей математики'),
+    ('ДУ', 'Кафедра дифференциальных уравнений'),
+    ('ИТ', 'Кафедра информационных технологий'),
+    ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
+    ('МА', 'Кафедра математического анализа'),
+    ('МПМ', 'Кафедра методики преподавания математики'),
+    ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
+    ('ПМ', 'Кафедра прикладной математики'),
+    ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
+)
+
+POSITIONS = (
+    ('асс.', 'Ассистент'),
+    ('ст.пр.', 'Старший преподаватель'),
+    ('доц.', 'Доцент'),
+    ('проф.', 'Профессор'),
+    ('зав.каф.', 'Заведующий кафедрой'),
+)
+
+LEVEL = (
+    ('Бак', 'Бакалавриат'),
+    ('Маг', 'Магистратура'),
+)
+
+CONTROLS = (
+    (CT_EXAM, 'Экзамен'),
+    (CT_CREDIT_GRADE, 'Зачёт с оценкой'),
+    (CT_CREDIT, 'Зачёт'),
+    (CT_COURSEWORK, 'Курсовой проект'),
+)
+
+
+class Person(Document):
     """
     Человек и пользователь системы
     """
 
-    class Degree(db.EmbeddedDocument):
+    class Degree(EmbeddedDocument):
         """
         Строка истории присуждения человеку учёных степеней
         """
-        DEGREES = (
-            ('к.арх.', 'Кандидат архитектуры'),
-            ('к.б.н.', 'Кандидат биологических наук'),
-            ('к.вет.н.', 'Кандидат ветеринарных наук'),
-            ('к.воен.н.', 'Кандидат военных наук'),
-            ('к.г.н.', 'Кандидат географических наук'),
-            ('к.г.-м.н.', 'Кандидат геолого-минералогических наук'),
-            ('к.иск.', 'Кандидат искусствоведения'),
-            ('к.и.н.', 'Кандидат исторических наук'),
-            ('к.культ.', 'Кандидат культурологии'),
-            ('к.м.н.', 'Кандидат медицинских наук'),
-            ('к.пед.н.', 'Кандидат педагогических наук'),
-            ('к.полит.н.', 'Кандидат политических наук'),
-            ('к.п.н.', 'Кандидат психологических наук'),
-            ('к.с.-х.н.', 'Кандидат сельскохозяйственных наук'),
-            ('к.социол.н.', 'Кандидат социологических наук'),
-            ('к.теол.н.', 'Кандидат теологических наук'),
-            ('к.т.н.', 'Кандидат технических наук'),
-            ('к.фарм.н.', 'Кандидат фармацевтических наук'),
-            ('к.ф.-м.н.', 'Кандидат физико-математических наук'),
-            ('к.ф.н.', 'Кандидат филологических наук'),
-            ('к.филос.н.', 'Кандидат философских наук'),
-            ('к.х.н.', 'Кандидат химических наук'),
-            ('к.э.н.', 'Кандидат экономических наук'),
-            ('к.ю.н.', 'Кандидат юридических наук'),
-            ('д.арх.', 'Доктор архитектуры'),
-            ('д.б.н.', 'Доктор биологических наук'),
-            ('д.вет.н.', 'Доктор ветеринарных наук'),
-            ('д.воен.н.', 'Доктор военных наук'),
-            ('д.г.н.', 'Доктор географических наук'),
-            ('д.г.-м.н.', 'Доктор геолого-минералогических наук'),
-            ('д.иск.', 'Доктор искусствоведения'),
-            ('д.и.н.', 'Доктор исторических наук'),
-            ('д.культ.', 'Доктор культурологии'),
-            ('д.м.н.', 'Доктор медицинских наук'),
-            ('д.пед.н.', 'Доктор педагогических наук'),
-            ('д.полит.н.', 'Доктор политических наук'),
-            ('д.п.н.', 'Доктор психологических наук'),
-            ('д.с.-х.н.', 'Доктор сельскохозяйственных наук'),
-            ('д.социол.н.', 'Доктор социологических наук'),
-            ('д.теол.н.', 'Доктор теологических наук'),
-            ('д.т.н.', 'Доктор технических наук'),
-            ('д.фарм.н.', 'Доктор фармацевтических наук'),
-            ('д.ф.-м.н.', 'Доктор физико-математических наук'),
-            ('д.ф.н.', 'Доктор филологических наук'),
-            ('д.филос.н.', 'Доктор философских наук'),
-            ('д.х.н.', 'Доктор химических наук'),
-            ('д.э.н.', 'Доктор экономических наук'),
-            ('д.ю.н.', 'Доктор юридических наук'),
-        )
-        date = db.DateTimeField(verbose_name='Дата', required=True)
-        degree = db.StringField(verbose_name='Уч. степень', required=True, max_length=16, choices=DEGREES)
 
-    class Title(db.EmbeddedDocument):
+        date = DateTimeField(verbose_name='Дата', required=True)
+        degree = StringField(verbose_name='Уч. степень', required=True, choices=DEGREES)
+
+    class Title(EmbeddedDocument):
         """
         Строка истории присвоения человеку учёных званий
         """
-        TITLES = (
-            ('доц.', 'Доцент'),
-            ('проф.', 'Профессор'),
-        )
-        date = db.DateTimeField(verbose_name='Дата', required=True)
-        title = db.StringField(verbose_name='Уч. звание', required=True, max_length=8, choices=TITLES)
+
+        date = DateTimeField(verbose_name='Дата', required=True)
+        title = StringField(verbose_name='Уч. звание', required=True, choices=TITLES)
 
         def __str__(self):
             return f'{self.title}'
 
-    class Job(db.EmbeddedDocument):
+    class Job(EmbeddedDocument):
         """
         Строка истории трудоустройства человека
         """
-        DEPARTMENTS = (
-            ('АиГ', 'Кафедра алгебры и геометрии'),
-            ('ВМ', 'Кафедра высшей математики'),
-            ('ДУ', 'Кафедра дифференциальных уравнений'),
-            ('ИТ', 'Кафедра информационных технологий'),
-            ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
-            ('МА', 'Кафедра математического анализа'),
-            ('МПМ', 'Кафедра методики преподавания математики'),
-            ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
-            ('ПМ', 'Кафедра прикладной математики'),
-            ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
-        )
 
-        POSITIONS = (
-            ('асс.', 'Ассистент'),
-            ('ст.пр.', 'Старший преподаватель'),
-            ('доц.', 'Доцент'),
-            ('проф.', 'Профессор'),
-            ('зав.каф.', 'Заведующий кафедрой'),
-        )
+        date = DateTimeField(verbose_name='Дата', required=True)
+        department = StringField(verbose_name='Кафедра', required=True, choices=DEPARTMENTS)
+        position = StringField(verbose_name='Должность', required=True, choices=POSITIONS)
+        wage_rate = DecimalField(verbose_name='Ставка', required=True)
+        is_active = BooleanField(verbose_name='Работает', required=True)
 
-        date = db.DateTimeField(verbose_name='Дата', required=True)
-        department = db.StringField(verbose_name='Кафедра', max_length=5, required=True, choices=DEPARTMENTS)
-        position = db.StringField(verbose_name='Должность', max_length=10, required=True, choices=POSITIONS)
-        wage_rate = db.DecimalField(verbose_name='Ставка', required=True)
-        is_active = db.BooleanField(verbose_name='Работает')  # TODO: сделать обязательным, после исправления данных
-
-        def __str__(self):
+        def __str__(self) -> str:
             return f'{self.wage_rate} {self.position} каф. {self.department}'
 
-    last_name = db.StringField(verbose_name='Фамилия', max_length=32, required=True)
-    first_name = db.StringField(verbose_name='Имя', max_length=32, required=True)
-    second_name = db.StringField(verbose_name='Отчество', max_length=32)
-    emails = db.ListField(db.StringField(max_length=32), verbose_name='Почта')
-    degree_history = db.ListField(db.EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
-    title_history = db.ListField(db.EmbeddedDocumentField(Title), verbose_name='Уч. звание')
-    job_history = db.ListField(db.EmbeddedDocumentField(Job), verbose_name='Должность')
-    # TODO: добавить courses_history для ведения истории повышения квалификации
+    last_name = StringField(verbose_name='Фамилия', required=True)
+    first_name = StringField(verbose_name='Имя', required=True)
+    second_name = StringField(verbose_name='Отчество')
+    emails = ListField(StringField(), verbose_name='Почта')
+    degree_history = ListField(EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
+    title_history = ListField(EmbeddedDocumentField(Title), verbose_name='Уч. звание')
+    job_history = ListField(EmbeddedDocumentField(Job), verbose_name='Должность')
+    # Нужно добавить courses_history для ведения истории повышения квалификации
 
     @property
-    def degree(self):
+    def degree(self) -> str:
         degree_list = sorted(self.degree_history, key=lambda t: t.date)[-1:]
         return degree_list[0].degree if degree_list else ''
 
     @property
-    def title(self):
+    def title(self) -> str:
         title_list = sorted(self.title_history, key=lambda t: t.date)[-1:]
         return title_list[0].title if title_list else ''
 
     @property
-    def job(self):
+    def job(self) -> str:
         return ', '.join(map(str, filter(lambda j: j.is_active, self.job_history)))
 
     @property
-    def fio(self):
+    def fio(self) -> str:
         result = f'{self.last_name} {self.first_name:.1}.'
         if self.second_name:
             result += f'{self.second_name:.1}.'
@@ -174,68 +193,73 @@ class EducationProgram(db.Document):
     """
     Образовательная программа
     """
-    LEVEL = (
-        ('Бак', 'Бакалавриат'),
-        ('Маг', 'Магистратура'),
-    )
-    code = db.StringField(verbose_name='Код', max_length=8, required=True)
-    name = db.StringField(verbose_name='Название', max_length=100, required=True)
-    short = db.StringField(verbose_name='Сокращение', max_length=5, required=True)
-    level = db.StringField(verbose_name='Уровень', max_length=3, required=True, choices=LEVEL)
+
+    code = StringField(verbose_name='Код', required=True)
+    name = StringField(verbose_name='Название', required=True)
+    short = StringField(verbose_name='Сокращение', required=True)
+    level = StringField(verbose_name='Уровень', required=True, choices=LEVEL)
 
     def __str__(self):
         return f'{self.level} {self.short}'
 
 
-class StudentGroup(db.Document):
+class StudentGroup(Document):
     """
     Учебная группа студентов
     """
 
-    class Subgroups(db.EmbeddedDocument):
+    class Subgroups(EmbeddedDocument):
         """
         Строка истории изменения количества подгрупп
         """
-        date = db.DateTimeField(verbose_name='Дата')
-        count = db.IntField(verbose_name='Количество', requred=True)
 
-    class Students(db.EmbeddedDocument):
+        date = DateTimeField(verbose_name='Дата')
+        count = IntField(verbose_name='Количество', requred=True)
+
+    class Students(EmbeddedDocument):
         """
         Строка истории изменения количества студентов
         """
-        date = db.DateTimeField(verbose_name='Дата')
-        count = db.IntField(verbose_name='Количество', requred=True)
 
-    name = db.StringField(verbose_name='Название', max_length=20, required=True)
-    year = db.IntField(verbose_name='Год поступления', required=True)
-    program = db.ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
-    subgroups_history = db.ListField(db.EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
-    students_history = db.ListField(db.EmbeddedDocumentField(Students), verbose_name='Студенты')
+        date = DateTimeField(verbose_name='Дата')
+        count = IntField(verbose_name='Количество', requred=True)
+
+    name = StringField(verbose_name='Название', required=True)
+    year = IntField(verbose_name='Год поступления', required=True)
+    program = ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
+    subgroups_history = ListField(EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
+    students_history = ListField(EmbeddedDocumentField(Students), verbose_name='Студенты')
 
     @property
-    def subgroups(self):
+    def subgroups(self) -> int:
+        """ Текущее количество подгрупп """
         subgroups_list = sorted(self.subgroups_history, key=lambda t: t.date)[-1:]
-        return subgroups_list[0].count if subgroups_list else ''
+        return subgroups_list[0].count if subgroups_list else 0
 
     @property
-    def students(self):
+    def students(self) -> int:
         students_list = sorted(self.students_history, key=lambda t: t.date)[-1:]
-        return students_list[0].count if students_list else ''
+        return students_list[0].count if students_list else 0
+
+    def get_year(self, semester: int) -> int:
+        """ Курс обучения """
+        return (semester - int(self.year) * 2) // 2
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
 
 
-class Subject(db.Document):
+class Subject(Document):
     """
     Дисциплина
     Может вестись у нескольких групп и идти несколько семестров
     Пока не используется
     """
-    name = db.StringField(verbose_name='Название', max_length=100, required=True)
+
+    name = StringField(verbose_name='Название', required=True)
 
 
-class Course(db.Document):
+class Course(Document):
     """
     Курс для учебной группы в одном семестре
     Если предмет идёт у разных групп — создаем несколько записей
@@ -243,36 +267,29 @@ class Course(db.Document):
     Если имеет несколько форм контроля — создаем несколько элементов в списке controls
     """
 
-    CONTROLS = (
-        (CT_EXAM, 'Экзамен'),
-        (CT_CREDIT_GRADE, 'Зачёт с оценкой'),
-        (CT_CREDIT, 'Зачёт'),
-        (CT_COURSEWORK, 'Курсовой проект'),
-    )
-
-    student_group = db.ReferenceField('StudentGroup', verbose_name='Учеб. группа', required=True, on_delete=CASCADE)
-    semester = db.IntField(verbose_name='Семестр', required=True)
-    code = db.StringField(verbose_name='Код', max_length=15, required=True)
-    name = db.StringField(verbose_name='Название', max_length=100, required=True)
+    student_group = ReferenceField('StudentGroup', verbose_name='Учеб. группа', required=True, on_delete=CASCADE)
+    semester = IntField(verbose_name='Семестр', required=True)
+    code = StringField(verbose_name='Код', required=True)
+    name = StringField(verbose_name='Название', required=True)
 
     # Эти поля загружаются из РУП
-    hour_lecture = db.IntField(verbose_name='Лекции')        # Лекции
-    hour_practice = db.IntField(verbose_name='Практики')     # Практические занятия
-    hour_lab_work = db.IntField(verbose_name='Лаб. работы')  # Лабораторные работы
-    hour_exam = db.IntField(verbose_name='Часы экз.')        # Экзамен
-    hour_homework = db.IntField(verbose_name='СРС')          # СРС
-    control = db.IntField(verbose_name='КСР')                # Контроль СР
-    controls = db.ListField(db.StringField(max_length=3, choices=CONTROLS), verbose_name='Форма контроля')
+    hour_lecture = IntField(verbose_name='Лекции')        # Лекции
+    hour_practice = IntField(verbose_name='Практики')     # Практические занятия
+    hour_lab_work = IntField(verbose_name='Лаб. работы')  # Лабораторные работы
+    hour_exam = IntField(verbose_name='Часы экз.')        # Экзамен
+    hour_homework = IntField(verbose_name='СРС')          # СРС
+    control = IntField(verbose_name='КСР')                # Контроль СР
+    controls = ListField(StringField(choices=CONTROLS), verbose_name='Форма контроля')
 
     # Эти значения проставляет заведующий кафедрой
-    # hour_cons = db.IntField(verbose_name='Предэкз. конс.')   # Предэкзаменационные консультации
-    # hour_test = db.IntField(verbose_name='Проверка КР')      # Проверка РГР, рефератов и контрольных работ
-    # hour_rating = db.IntField(verbose_name='БРС')            # Ведение БРС
-    subject = db.ReferenceField('Subject', verbose_name='Дисциплина', on_delete=NULLIFY)
-    teacher = db.ReferenceField('Person', verbose_name='Преподаватель', on_delete=NULLIFY)
+    # hour_cons = IntField(verbose_name='Предэкз. конс.')   # Предэкзаменационные консультации
+    # hour_test = IntField(verbose_name='Проверка КР')      # Проверка РГР, рефератов и КР
+    # hour_rating = IntField(verbose_name='БРС')            # Ведение БРС
+    subject = ReferenceField('Subject', verbose_name='Дисциплина', on_delete=NULLIFY)
+    teacher = ReferenceField('Person', verbose_name='Преподаватель', on_delete=NULLIFY)
 
     @property
-    def semester_str(self):
+    def semester_str(self) -> str:
         year, half = divmod(self.semester, 2)
         sem = 'осень' if half else 'весна'
         return f'{year}, {sem}'
@@ -281,7 +298,7 @@ class Course(db.Document):
         return f'{self.student_group}, {self.semester}: {self.name}'
 
 
-def get_subjects(rup) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:
+def get_subjects(rup: TextIOBase) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:
     """ Читаем данные РУП из файла PLX """
 
     root = ElementTree.fromstring(rup.read())
@@ -319,7 +336,7 @@ def get_subjects(rup) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:
     return list(subjects.values())
 
 
-def load_rup(rup, student_group):
+def load_rup(rup: TextIOBase, student_group: StudentGroup) -> None:
     """ Загрузка данных курсов из файлов РУП """
 
     # Читаем данные РУП из файла PLX

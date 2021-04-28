@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, abort, redirect, render_template, request, session, url_for
+from flask import Blueprint, Flask, abort, redirect, render_template, request, session, url_for
 
 from jimmy.models import Person
 
@@ -7,15 +7,19 @@ oauth = OAuth()
 bp = Blueprint('auth', __name__)
 
 
-def init(app):
+def init(app: Flask) -> None:
     oauth.init_app(app)
 
-    azure_url = 'https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration'
-    azure_url = azure_url.format(**app.config)
-    oauth.register('azure', server_metadata_url=azure_url, client_kwargs={'scope': 'openid email'})
+    azure_tenat_id = app.config['AZURE_TENANT_ID']
+    openid_path = '.well-known/openid-configuration'
+    scope = {'scope': 'openid email'}
+    urls = {
+        'azure': f'https://login.microsoftonline.com/{azure_tenat_id}/v2.0/{openid_path}',
+        'google': f'https://accounts.google.com/{openid_path}',
+    }
 
-    google_url = 'https://accounts.google.com/.well-known/openid-configuration'
-    oauth.register('google', server_metadata_url=google_url, client_kwargs={'scope': 'openid email'})
+    for provider in ('azure', 'google'):
+        oauth.register(provider, server_metadata_url=urls[provider], client_kwargs=scope)
 
 
 def init_session(user_email):

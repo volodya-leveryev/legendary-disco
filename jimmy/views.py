@@ -1,10 +1,15 @@
 from flask import redirect, render_template, request, session, url_for
-from flask_admin import BaseView, expose
-from flask_admin.contrib.mongoengine import ModelView
-from werkzeug.datastructures import CombinedMultiDict
 
-from jimmy.forms import RupForm
-from jimmy.models import Course, StudentGroup, load_rup
+from jimmy.models import Course
+
+
+def semester_filter(s: int) -> str:
+    if s and isinstance(s, int):
+        year, half = divmod(s, 2)
+    else:
+        year, half = 2021, 0
+    sem = 'осень' if half else 'весна'
+    return f'{year}, {sem}'
 
 
 def login_required(func):
@@ -55,49 +60,3 @@ def home_page():
 # def student_group_list():
 #     student_groups = models.StudentGroup.objects.order_by('name')
 #     return render_template('student_group_list.html', student_groups=student_groups)
-
-
-def semester_filter(s):
-    if s and isinstance(s, int):
-        year, half = divmod(s, 2)
-    else:
-        year, half = 2021, 0
-    sem = 'осень' if half else 'весна'
-    return f'{year}, {sem}'
-
-
-class Auth:
-    def is_accessible(self):
-        return 'user' in session
-
-    def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('auth.login_page', next=request.url))
-
-
-class LoadPlanView(Auth, BaseView):
-    @expose('/', methods=('GET', 'POST'))
-    def index(self):
-        form = RupForm(CombinedMultiDict((request.files, request.form)))
-        form.student_group.choices = [(sg.id, sg.name) for sg in StudentGroup.objects.all()]
-        if form.validate_on_submit():
-            sg_id = form.student_group.data
-            student_group = StudentGroup.objects.get(id=sg_id)
-            load_rup(form.rup_file.data, student_group)
-            return redirect(url_for('admin.index'))
-        return self.render('load_plan.html', form=form)
-
-
-class PersonView(Auth, ModelView):
-    column_default_sort = [('last_name', False), ('first_name', False), ('second_name', False)]
-    column_list = ('fio', 'emails', 'degree', 'title', 'job')
-
-
-class StudentGroupView(Auth, ModelView):
-    column_default_sort = [('name', False)]
-    column_list = ('name', 'program', 'year', 'subgroups', 'students')
-
-
-class CourseView(Auth, ModelView):
-    column_default_sort = [('student_group', False), ('semester', False)]
-    column_filters = ('semester',)
-    column_list = ('student_group', 'code', 'name', 'semester_str', 'hour_lecture', 'hour_lab_work', 'hour_practice')

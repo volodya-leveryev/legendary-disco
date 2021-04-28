@@ -1,6 +1,7 @@
 *.cfg
 *.pyc
 .idea/
+backups/
 db/
 media/
 migrations/

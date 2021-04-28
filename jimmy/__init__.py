@@ -1,23 +1,15 @@
 from flask import Flask
-from flask_admin import Admin
-from flask_admin.contrib.mongoengine import ModelView
-from flask_admin.menu import MenuLink
-
-from jimmy import auth, models, views
-
-admin = Admin(name='Админка', template_mode='bootstrap3')
+from jimmy import models, views, views_admin, views_auth
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_envvar('JIMMY_CONFIG')
 
+    app.add_template_filter(views.semester_filter, 'semester')
+
     models.db.init_app(app)
 
-    auth.init(app)
-    app.register_blueprint(auth.bp, url_prefix='/auth')
-
-    app.jinja_env.filters['semester'] = views.semester_filter
     app.add_url_rule('/', 'home', views.home_page)
     app.add_url_rule('/semester/<int:year>/<int:half>/', 'semester', views.semester_view)
 
@@ -27,12 +19,9 @@ def create_app():
     # app.add_url_rule('/job_assignment/list/', 'job_assignment_list', views.job_assignment_list)
     # app.add_url_rule('/student_group/list/', 'student_group_list', views.student_group_list)
 
-    admin.init_app(app)
-    admin.add_view(views.LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
-    admin.add_view(ModelView(models.EducationProgram, 'Программы обучения'))
-    admin.add_view(views.PersonView(models.Person, 'Люди'))
-    admin.add_view(views.StudentGroupView(models.StudentGroup, 'Учебные группы'))
-    admin.add_view(views.CourseView(models.Course, 'Курсы обучения'))
-    admin.add_link(MenuLink(name='Сайт', url='/'))
+    views_admin.init(app)
+
+    views_auth.init(app)
+    app.register_blueprint(views_auth.bp, url_prefix='/auth')
 
     return app
