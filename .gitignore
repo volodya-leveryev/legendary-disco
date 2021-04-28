@@ -12,8 +12,6 @@ htmlcov/
 # IDE
 .idea/
 
-# Testing cache
-.pytest_cache/
-
-# Python virtual environment
+# Python
+*.pyc
 venv/

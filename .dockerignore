@@ -23,10 +23,6 @@ jimmy/
 LICENSE
 README.md
 
-# Pipenv
-Pipfile
-Pipfile.lock
-
 # Tests
 tests/
 .pytest_cache/
