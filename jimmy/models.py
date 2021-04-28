@@ -240,9 +240,9 @@ class StudentGroup(Document):
         students_list = sorted(self.students_history, key=lambda t: t.date)[-1:]
         return students_list[0].count if students_list else 0
 
-    def get_year(self, semester: int) -> int:
-        """ Курс обучения """
-        return (semester - int(self.year) * 2) // 2
+    def get_education_year(self, semester: int) -> int:
+        """ Курс (год) обучения """
+        return (semester - int(self.year) * 2 - 1) // 2 + 1
 
     def __str__(self):
         return f'{self.name}'
@@ -288,13 +288,11 @@ class Course(Document):
     teacher = ReferenceField('Person', verbose_name='Преподаватель', on_delete=NULLIFY)
 
     @property
-    def semester_str(self) -> str:
-        year, half = divmod(self.semester, 2)
-        sem = 'осень' if half else 'весна'
-        return f'{year}, {sem}'
+    def sem(self) -> int:
+        return self.semester - 2 * self.student_group.year
 
     def __str__(self):
-        return f'{self.student_group}, {self.semester}: {self.name}'
+        return f'{self.student_group}, {self.sem}: {self.name}'
 
 
 def get_subjects(rup: TextIOBase) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:

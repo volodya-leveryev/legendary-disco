@@ -2,6 +2,7 @@ import pytest
 
 from jimmy import create_app
 from jimmy.models import Person, db
+from jimmy.views import semester_filter
 from jimmy.views_auth import init_session
 
 
@@ -19,6 +20,11 @@ def client():
         yield test_client
 
     db.disconnect()
+
+
+def test_semester_filter():
+    assert semester_filter(0) == '2021, весна'
+    assert semester_filter(4000) == '2000, весна'
 
 
 def test_home_page(client):

@@ -57,9 +57,15 @@ def test_admin_load_plan(client):
     assert len(Course.objects) == 0
     filename = '09030101_20-12ИВТ.plx'
     filepath = os.path.join(os.path.dirname(__file__), filename)
-    rup_file = FileStorage(stream=open(filepath, 'rb'), filename=filename)
     response = client.post('/admin/load_plan/', data={
-        'rup_file': rup_file,
+        'rup_file': FileStorage(stream=open(filepath, 'rb')),
+        'student_group': str(StudentGroup.objects[0].id),
+    })
+    assert response.status_code == 302
+    assert len(Course.objects) == 89
+
+    response = client.post('/admin/load_plan/', data={
+        'rup_file': FileStorage(stream=open(filepath, 'rb')),
         'student_group': str(StudentGroup.objects[0].id),
     })
     assert response.status_code == 302

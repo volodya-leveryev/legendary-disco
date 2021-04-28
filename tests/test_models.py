@@ -145,10 +145,14 @@ def test_student_group(student_group):
     student_group.students_history = [students2, students1]
     assert student_group.students == 10
 
+    assert student_group.get_education_year(4040) == 1
+    assert student_group.get_education_year(4041) == 2
+
 
 def test_course(student_group):
     course = Course()
     course.student_group = student_group
-    course.semester = 4000
+    course.semester = 4039
     course.code = 'Б1.О.01'
     course.name = 'Философия'
+    assert str(course) == 'Б-ИВТ-19-1, 1: Философия'
