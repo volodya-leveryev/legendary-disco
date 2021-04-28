@@ -10,7 +10,7 @@ bp = Blueprint('auth', __name__)
 def init(app: Flask) -> None:
     oauth.init_app(app)
 
-    azure_tenat_id = app.config['AZURE_TENANT_ID']
+    azure_tenat_id = app.config.get('AZURE_TENANT_ID')
     openid_path = '.well-known/openid-configuration'
     scope = {'scope': 'openid email'}
     urls = {
@@ -22,15 +22,15 @@ def init(app: Flask) -> None:
         oauth.register(provider, server_metadata_url=urls[provider], client_kwargs=scope)
 
 
-def init_session(user_email):
+def init_session(s, user_email):
     user = Person.objects(emails=user_email)
     if not user:
         abort(401)
-    session['user'] = {
+    s['sem'] = 2021 * 2
+    s['user'] = {
         'id': str(user[0].id),
         'str': str(user[0]),
     }
-    session['sem'] = 2021 * 2
 
 
 @bp.route('/login/')
@@ -49,7 +49,7 @@ def azure_init():
 def azure_done():
     token = oauth.azure.authorize_access_token()
     userinfo = oauth.azure.parse_id_token(token)
-    init_session(userinfo.get('email'))
+    init_session(session, userinfo.get('email'))
     return redirect(url_for('home'))
 
 
@@ -64,7 +64,7 @@ def google_init():
 def google_done():
     token = oauth.google.authorize_access_token()
     userinfo = oauth.google.parse_id_token(token)
-    init_session(userinfo.get('email'))
+    init_session(session, userinfo.get('email'))
     return redirect(url_for('home'))
 
 

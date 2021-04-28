@@ -13,6 +13,7 @@ Authlib = "*"
 Flask = "*"
 pytest = "*"
 mongomock = "*"
+pytest-cov = "*"
 
 [dev-packages]
 

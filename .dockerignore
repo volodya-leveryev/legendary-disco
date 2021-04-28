@@ -1,8 +1,35 @@
-*.cfg
-*.pyc
-.git/
-.idea/
-.pytest_cache/
+# Database
+backups/
 db/
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# IDE
+.idea/
+
+# Project files
+jimmy/
+
+# Git
+.git/
+
+# Project
+LICENSE
+README.md
+
+# Pipenv
+Pipfile
+Pipfile.lock
+
+# Tests
 tests/
+.pytest_cache/
+
+# Python virtual environment
 venv/

@@ -1,4 +1,5 @@
 from flask import Flask
+
 from jimmy import models, views, views_admin, views_auth
 
 

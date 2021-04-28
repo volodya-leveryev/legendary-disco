@@ -1,9 +1,19 @@
-*.cfg
-*.pyc
-.idea/
+# Database
 backups/
 db/
-media/
-migrations/
-static/
+
+# Config files
+*.cfg
+
+# Test coverage
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+
+# Testing cache
+.pytest_cache/
+
+# Python virtual environment
 venv/

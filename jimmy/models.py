@@ -138,9 +138,6 @@ class Person(Document):
         date = DateTimeField(verbose_name='Дата', required=True)
         title = StringField(verbose_name='Уч. звание', required=True, choices=TITLES)
 
-        def __str__(self):
-            return f'{self.title}'
-
     class Job(EmbeddedDocument):
         """
         Строка истории трудоустройства человека
@@ -176,7 +173,9 @@ class Person(Document):
 
     @property
     def job(self) -> str:
-        return ', '.join(map(str, filter(lambda j: j.is_active, self.job_history)))
+        active_jobs = filter(lambda j: j.is_active, self.job_history)
+        sorted_jobs = sorted(active_jobs, key=lambda j: j.wage_rate, reverse=True)
+        return ', '.join(map(str, sorted_jobs))
 
     @property
     def fio(self) -> str:
