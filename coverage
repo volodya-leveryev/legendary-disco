@@ -1,3 +1,4 @@
 #!/bin/bash
+export JIMMY_CONFIG=testing.cfg
 pytest --cov=jimmy tests
 coverage html

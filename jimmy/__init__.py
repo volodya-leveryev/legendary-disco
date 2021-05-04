@@ -12,6 +12,7 @@ def create_app():
     models.db.init_app(app)
 
     app.add_url_rule('/', 'home', views.home_page)
+    app.add_url_rule('/course/', 'course_list', views.course_list)
     app.add_url_rule('/semester/<int:year>/<int:half>/', 'semester', views.semester_view)
 
     # TODO: доделать формы редактирования и убрать админку

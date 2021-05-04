@@ -23,7 +23,7 @@ def client():
 
 
 def test_semester_filter():
-    assert semester_filter(0) == '2021, весна'
+    assert semester_filter(0) == '0, весна'
     assert semester_filter(4000) == '2000, весна'
 
 

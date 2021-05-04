@@ -1,15 +1,10 @@
 from flask import redirect, render_template, request, session, url_for
 
-from jimmy.models import Course
+from jimmy.models import Course, semester_str
 
 
-def semester_filter(s: int) -> str:
-    if s and isinstance(s, int):
-        year, half = divmod(s, 2)
-    else:
-        year, half = 2021, 0
-    sem = 'осень' if half else 'весна'
-    return f'{year}, {sem}'
+def semester_filter(semester_abs: int = 4042) -> str:
+    return semester_str(semester_abs)
 
 
 def login_required(func):
@@ -29,8 +24,14 @@ def semester_view(year, half):
 
 @login_required
 def home_page():
-    courses = Course.objects.filter(teacher=session['user']['id'], semester=session['sem'])
+    courses = Course.objects.filter(teacher=session['user']['id'], semester_abs=session['sem'])
     return render_template('home.html', courses=courses)
+
+
+@login_required
+def course_list():
+    courses = Course.objects.order_by('student_group', 'semester')
+    return render_template('course_list.html', object_list=courses)
 
 
 # TODO: доделать формы редактирования и убрать админку

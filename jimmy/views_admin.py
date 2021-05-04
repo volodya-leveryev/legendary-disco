@@ -12,8 +12,8 @@ def init(app: Flask) -> None:
     admin = Admin(name='Админка', template_mode='bootstrap3')
     admin.init_app(app)
     admin.add_view(LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
-    admin.add_view(EducationProgramView(EducationProgram, 'Программы обучения'))
     admin.add_view(PersonView(Person, 'Люди'))
+    admin.add_view(EducationProgramView(EducationProgram, 'Программы обучения'))
     admin.add_view(StudentGroupView(StudentGroup, 'Учебные группы'))
     admin.add_view(CourseView(Course, 'Курсы обучения'))
     admin.add_link(MenuLink(name='Сайт', url='/'))
@@ -25,7 +25,7 @@ class Auth:
         return 'user' in session
 
     @staticmethod
-    def inaccessible_callback(name, **kwargs):
+    def inaccessible_callback(_name, **_kwargs):
         return redirect(url_for('auth.login_page', next=request.url))
 
 
@@ -52,11 +52,11 @@ class PersonView(Auth, ModelView):
 
 
 class StudentGroupView(Auth, ModelView):
-    column_default_sort = [('name', False)]
-    column_list = ('name', 'program', 'year', 'subgroups', 'students')
+    column_default_sort = [('program', False), ('year', False), ('name', False)]
+    column_list = ('program', 'year', 'name', 'courses')
 
 
 class CourseView(Auth, ModelView):
-    column_default_sort = [('student_group', False), ('semester', False)]
-    column_filters = ('semester',)
+    column_default_sort = [('student_group', False), ('semester_abs', False)]
+    column_filters = ('semester_abs',)
     column_list = ('student_group', 'code', 'name', 'semester_str', 'hour_lecture', 'hour_lab_work', 'hour_practice')

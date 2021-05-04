@@ -1,3 +1,4 @@
+from datetime import datetime
 from io import TextIOBase
 from typing import Dict, Union, List
 from xml.etree import ElementTree
@@ -229,10 +230,12 @@ class StudentGroup(Document):
     subgroups_history = ListField(EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
     students_history = ListField(EmbeddedDocumentField(Students), verbose_name='Студенты')
 
-    @property
-    def subgroups(self) -> int:
-        """ Текущее количество подгрупп """
-        subgroups_list = sorted(self.subgroups_history, key=lambda t: t.date)[-1:]
+    def subgroups(self, semester_abs: int) -> int:
+        """ Количество подгрупп в семестре """
+        year, half = divmod(semester_abs, 2)
+        border = datetime(year + half, 1 if half else 6, 1)
+        subgroups_list = filter(lambda s: s.date < border, self.subgroups_history)
+        subgroups_list = sorted(subgroups_list, key=lambda t: t.date)[-1:]
         return subgroups_list[0].count if subgroups_list else 0
 
     @property
@@ -240,9 +243,13 @@ class StudentGroup(Document):
         students_list = sorted(self.students_history, key=lambda t: t.date)[-1:]
         return students_list[0].count if students_list else 0
 
-    def get_education_year(self, semester: int) -> int:
+    @property
+    def courses(self) -> int:
+        return len(Course.objects(student_group=self))
+
+    def get_education_year(self, semester_abs: int) -> int:
         """ Курс (год) обучения """
-        return (semester - int(self.year) * 2 - 1) // 2 + 1
+        return (semester_abs - int(self.year) * 2 - 1) // 2 + 1
 
     def __str__(self):
         return f'{self.name}'
@@ -267,7 +274,7 @@ class Course(Document):
     """
 
     student_group = ReferenceField('StudentGroup', verbose_name='Учеб. группа', required=True, on_delete=CASCADE)
-    semester = IntField(verbose_name='Семестр', required=True)
+    semester_abs = IntField(verbose_name='Семестр', required=True)
     code = StringField(verbose_name='Код', required=True)
     name = StringField(verbose_name='Название', required=True)
 
@@ -289,10 +296,30 @@ class Course(Document):
 
     @property
     def sem(self) -> int:
-        return self.semester - 2 * self.student_group.year
+        return self.semester_abs - 2 * self.student_group.year
+
+    @property
+    def year(self) -> int:
+        return self.sem // 2
+
+    @property
+    def semester_str(self) -> str:
+        return semester_str(self.semester_abs)
+
+    def hour_cons(self, ) -> int:
+        res = 100500
+        if CT_EXAM in self.controls:
+            res = min(self.hour)
+        return res
 
     def __str__(self):
         return f'{self.student_group}, {self.sem}: {self.name}'
+
+
+def semester_str(semester_abs: int) -> str:
+    year, half = divmod(semester_abs, 2)
+    sem = 'осень' if half else 'весна'
+    return f'{year}, {sem}'
 
 
 def get_subjects(rup: TextIOBase) -> List[Dict[str, Union[str, Dict[int, Dict[str, int]]]]]:
@@ -350,7 +377,7 @@ def load_rup(rup: TextIOBase, student_group: StudentGroup) -> None:
             courses_pool = [(Course(), -1)]
             for oc in old_courses:
                 # Чтобы ускорить работу берём только похожие
-                old_course_signature = oc.name + str(oc.semester)
+                old_course_signature = oc.name + str(oc.semester_abs - oc.student_group.year * 2)
                 new_course_signature = str(subject['name']) + str(semester)
                 distance = jaro_winkler_similarity(old_course_signature, new_course_signature)
                 threshold = 0.9
@@ -365,7 +392,7 @@ def load_rup(rup: TextIOBase, student_group: StudentGroup) -> None:
 
             # Заполняем данные курса
             course.student_group = student_group
-            course.semester = student_group.year * 2 + semester
+            course.semester_abs = student_group.year * 2 + semester
             course.code = subject['code']
             course.name = subject['name']
             course.hour_lecture = hours.get(WT_LECTURE, 0)

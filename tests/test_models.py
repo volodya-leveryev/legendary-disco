@@ -128,9 +128,9 @@ def test_student_group(student_group):
     sub_groups2.count = 1
 
     student_group.subgroups_history = [sub_groups1, sub_groups2]
-    assert student_group.subgroups == 1
+    assert student_group.subgroups(4040) == 1
     student_group.subgroups_history = [sub_groups2, sub_groups1]
-    assert student_group.subgroups == 1
+    assert student_group.subgroups(4020) == 2
 
     students1 = StudentGroup.Students()
     students1.date = datetime(2010, 1, 1)
@@ -152,7 +152,7 @@ def test_student_group(student_group):
 def test_course(student_group):
     course = Course()
     course.student_group = student_group
-    course.semester = 4039
+    course.semester_abs = 4039
     course.code = 'Б1.О.01'
     course.name = 'Философия'
     assert str(course) == 'Б-ИВТ-19-1, 1: Философия'

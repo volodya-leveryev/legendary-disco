@@ -1,12 +1,10 @@
 {% extends 'page.html' %}
 {% block body %}
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <h1>{% block title %}Вход в систему{% endblock %}</h1>
-            <p><a href="{{ url_for('auth.azure_init') }}">Войти через личный кабинет работника СВФУ</a></p>
-            <p><a href="{{ url_for('auth.google_init') }}">Войти через аккаунт Google</a></p>
-        </div>
+<section class="section">
+    <div class="container">
+        <h1 class="title">{% block title %}Вход в систему{% endblock %}</h1>
+        <p><a href="{{ url_for('auth.azure_init') }}">Войти через личный кабинет работника СВФУ</a></p>
+        <p><a href="{{ url_for('auth.google_init') }}">Войти через аккаунт Google</a></p>
     </div>
-</div>
+</section>
 {% endblock %}
