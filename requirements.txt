@@ -1,0 +1,10 @@
+Authlib
+Flask
+flask-admin
+flask-mongoengine
+gunicorn
+jellyfish
+mongomock
+pytest
+pytest-cov
+requests

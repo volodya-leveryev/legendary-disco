@@ -51,3 +51,13 @@ MONGODB_HOST = ''
 Для подключения к MongoDB используется Flask-MongoEngine. Параметры подключения можно посмотреть в [документации](http://docs.mongoengine.org/projects/flask-mongoengine/en/latest/).
 
 Перед запуском создайте переменную окружения `JIMMY_CONFIG`, которая указывает на этот конфигурационный файл.
+
+## Тестирование 
+
+Для тестирования и определения тестового покрытия выполните:
+
+```sh
+export JIMMY_CONFIG=testing.cfg
+pytest --cov=jimmy tests
+coverage html
+```

@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3"
 
 services:
 
@@ -15,5 +15,6 @@ services:
   db:
     image: mongo
     restart: always
+    user: $UID:$GID
     volumes:
       - ./db:/data/db
