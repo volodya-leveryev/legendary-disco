@@ -1,30 +1,28 @@
 {% extends 'menu.html' %}
 {% block content %}
-<div class="container is-fluid">
-    <h1 class="title">{% block title %}Дисциплины{% endblock %}</h1>
-    <div class="table-container is-size-7">
-        <table class="table is-bordered is-hoverable is-narrow">
-            <thead class="has-text-centered">
-            <tr>
-                <th>№</th>
-                <th>Индекс</th>
-                <th>Наименование</th>
-                <th>Группа</th>
-                <th>Семестр</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for object in object_list %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ object.code }}</td>
-                <td>{{ object.name }}</td>
-                <td>{{ object.student_group }}</td>
-                <td>{{ object.semester_abs }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="container-fluid">
+  <h1 class="title">{% block title %}Дисциплины{% endblock %}</h1>
+  <table class="table table-bordered table-hover table-sm">
+    <thead>
+    <tr>
+      <th>№</th>
+      <th>Индекс</th>
+      <th>Наименование</th>
+      <th>Группа</th>
+      <th>Семестр</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for object in object_list %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ object.code }}</td>
+      <td>{{ object.name }}</td>
+      <td>{{ object.student_group }}</td>
+      <td>{{ object.semester_abs }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

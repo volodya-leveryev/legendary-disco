@@ -56,8 +56,33 @@ MONGODB_HOST = ''
 
 Для тестирования и определения тестового покрытия выполните:
 
-```sh
+```shell
 export JIMMY_CONFIG=testing.cfg
 pytest --cov=jimmy tests
 coverage html
+```
+
+## Разработка
+
+Для запуска СУБД в контейнере на MacOS/Linux выполните:
+
+```shell
+docker run --name legendary-disco --detach --user $(id -u):$(id -g) --volume $(pwd)/db:/data/db --publish 127.0.0.1:27017:27017 mongo:latest
+```
+
+Создайте и установите необходимые пакеты в виртуальное окружение:
+
+```shell
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Для запуска приложения на MacOS/Linux выполните:
+
+```shell
+export FLASK_APP=jimmy
+export FLASK_ENV=development
+export JIMMY_CONFIG=development.cfg
+flask run
 ```

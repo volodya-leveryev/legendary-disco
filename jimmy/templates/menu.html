@@ -1,107 +1,94 @@
 {% extends 'page.html' %}
 {% block body %}
-<nav class="navbar px-3" role="navigation" aria-label="Главное меню">
-    <div class="navbar-brand">
-        <a role="button" class="navbar-burger" aria-label="Показать" aria-expanded="false" data-target="menu">
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-        </a>
-    </div>
-    <div class="navbar-menu">
-        <div class="navbar-start">
-            <a class="navbar-item is-active" href="{{ url_for('home') }}">КУП</a>
-        </div>
-        <div class="navbar-end">
-            <a href="#" class="navbar-item icon-text" onclick="showSemesterModal()">
-            <span class="icon">
-                <i class="far fa-calendar-alt"></i>
-            </span>
-                <span>{{ session['sem'] | semester }}</span>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link{% if request.endpoint == 'home' %} active{% endif %}" href="{{ url_for('home') }}">
+              КУП
             </a>
-            <div class="navbar-item has-dropdown is-hoverable">
-                <a class="navbar-link">Админка</a>
-                <div class="navbar-dropdown">
-                    <a class="navbar-item" href="{{ url_for('admin.index') }}">Админка</a>
-                </div>
-            </div>
-            <div class="navbar-item has-dropdown is-hoverable">
-                <a class="navbar-link">{{ session['user']['str'] }}</a>
-                <div class="navbar-dropdown">
-                    <a class="navbar-item" href="{{ url_for('auth.logout') }}">Выход</a>
-                </div>
-            </div>
+          </li>
+        </ul>
+        <ul class="navbar-nav mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="#" role="button" data-bs-toggle="modal" data-bs-target="#semester-modal">
+              <i class="bi bi-calendar4"></i>
+              <span>{{ session['sem'] | semester }}</span>
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a href="#" id="adminDropdown" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
+               aria-expanded="false">
+              Админка
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('admin.index') }}">Админка</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a href="#" id="profileDropdown" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
+               aria-expanded="false">
+              {{ session['user']['str'] }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выход</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="modal" tabindex="-1" id="semester-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Выбор семестра</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+          <div class="input-group mb-3">
+            <button class="btn btn-outline-secondary" type="button" onclick="new_sem -= 1; refreshModal();">
+              <i class="bi bi-caret-left"></i>
+            </button>
+            <input type="text" class="form-control text-center" id="semester" value="{{ session['sem'] | semester }}" disabled>
+            <button class="btn btn-outline-secondary" type="button" onclick="new_sem += 1; refreshModal();">
+              <i class="bi bi-caret-right"></i>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+          <button type="button" class="btn btn-primary" onclick="changeSemester()">Сохранить</button>
+        </div>
+      </div>
     </div>
-</nav>
+  </div>
 
-<div class="modal" id="semester-modal">
-    <div class="modal-background" onclick="hideSemesterModal()"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Выбор семестра</p>
-            <button class="delete" aria-label="Отмена" onclick="hideSemesterModal()"></button>
-        </header>
-        <section class="modal-card-body">
-            <nav class="level">
-                <div class="level-left">
-                    <button class="button" onclick="new_sem -= 1; refreshModal();">
-                        <span class="icon">
-                            <i class="fas fa-angle-double-left"></i>
-                        </span>
-                    </button>
-                </div>
-                <div class="level-item" id="showSemester">
-                    <p>{{ session['sem'] | semester }}</p>
-                </div>
-                <div class="level-right">
-                    <button class="button" onclick="new_sem += 1; refreshModal();">
-                        <span class="icon">
-                            <i class="fas fa-angle-double-right"></i>
-                        </span>
-                    </button>
-                </div>
-            </nav>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-primary" onclick="changeSemester()">Сохранить</button>
-            <button class="button" aria-label="Отмена" onclick="hideSemesterModal()">Отменить</button>
-        </footer>
-    </div>
-</div>
-
-{% block content %}{% endblock %}
+  {% block content %}{% endblock %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-let old_sem = {{ session['sem'] }};
-let new_sem = old_sem;
+  let old_sem = {{ session['sem'] }};
+  let new_sem = old_sem;
 
-function refreshModal() {
+  function refreshModal() {
     let half = new_sem % 2;
     let year = (new_sem - half) / 2;
-    let elem = document.getElementById("showSemester");
-    elem.innerHTML = year + ", " + ((half == 1) ? "осень" : "весна");
-}
+    let elem = document.getElementById("semester");
+    elem.value = year + ", " + ((half == 1) ? "осень" : "весна");
+  }
 
-function showSemesterModal() {
-    new_sem = old_sem;
-    refreshModal();
-    let modal = document.getElementById("semester-modal");
-    modal.classList.add("is-active");
-}
-
-function hideSemesterModal() {
-    let modal = document.getElementById("semester-modal");
-    modal.classList.remove("is-active");
-}
-
-function changeSemester(change) {
+  function changeSemester(change) {
     let half = new_sem % 2;
     let year = (new_sem - half) / 2;
     window.location.href = "/semester/" + year + "/" + (half + 1) + "/";
-}
-
+  }
 </script>
 {% endblock %}
