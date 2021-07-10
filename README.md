@@ -67,7 +67,13 @@ coverage html
 Для запуска СУБД в контейнере на MacOS/Linux выполните:
 
 ```shell
-docker run --name legendary-disco --detach --user $(id -u):$(id -g) --volume $(pwd)/db:/data/db --publish 127.0.0.1:27017:27017 mongo:latest
+docker run \
+    --detach \
+    --name legendary-disco \ 
+    --publish 127.0.0.1:27017:27017 \
+    --user $(id -u):$(id -g) \
+    --volume $(pwd)/db:/data/db \
+    mongo:latest
 ```
 
 Создайте и установите необходимые пакеты в виртуальное окружение:

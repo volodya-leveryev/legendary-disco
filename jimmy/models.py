@@ -84,25 +84,16 @@ TITLES = (
     ('проф.', 'Профессор'),
 )
 
-DEPARTMENTS = (
-    ('АиГ', 'Кафедра алгебры и геометрии'),
-    ('ВМ', 'Кафедра высшей математики'),
-    ('ДУ', 'Кафедра дифференциальных уравнений'),
-    ('ИТ', 'Кафедра информационных технологий'),
-    ('МЭПИ', 'Кафедра математической экономики и прикладной информатики'),
-    ('МА', 'Кафедра математического анализа'),
-    ('МПМ', 'Кафедра методики преподавания математики'),
-    ('МТС', 'Кафедра многоканальных телекоммуникационных систем'),
-    ('ПМ', 'Кафедра прикладной математики'),
-    ('ТМОИ', 'Кафедра теории и методики обучения информатики'),
-)
-
 POSITIONS = (
     ('асс.', 'Ассистент'),
     ('ст.пр.', 'Старший преподаватель'),
     ('доц.', 'Доцент'),
+    ('доц.-исс.', 'Доцент-исследователь'),
     ('проф.', 'Профессор'),
     ('зав.каф.', 'Заведующий кафедрой'),
+    ('зав.лаб.', 'Заведующий лабораторией'),
+    ('зам.дир.', 'Заместитель директора'),
+    ('нач.', 'Начальник'),
 )
 
 LEVEL = (
@@ -145,7 +136,7 @@ class Person(Document):
         """
 
         date = DateTimeField(verbose_name='Дата', required=True)
-        department = StringField(verbose_name='Кафедра', required=True, choices=DEPARTMENTS)
+        department = ReferenceField('Department', verbose_name='Кафедра', on_delete=NULLIFY)
         position = StringField(verbose_name='Должность', required=True, choices=POSITIONS)
         wage_rate = DecimalField(verbose_name='Ставка', required=True)
         is_active = BooleanField(verbose_name='Работает', required=True)
@@ -156,10 +147,16 @@ class Person(Document):
     last_name = StringField(verbose_name='Фамилия', required=True)
     first_name = StringField(verbose_name='Имя', required=True)
     second_name = StringField(verbose_name='Отчество')
+    maiden_name = StringField(verbose_name='Девичья фамилия')
     emails = ListField(StringField(), verbose_name='Почта')
+    is_user = BooleanField(verbose_name='Пользователь')
+    is_admin = BooleanField(verbose_name='Администратор')
+    student_num = StringField(verbose_name='Номер студ. билета')
     degree_history = ListField(EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
     title_history = ListField(EmbeddedDocumentField(Title), verbose_name='Уч. звание')
     job_history = ListField(EmbeddedDocumentField(Job), verbose_name='Должность')
+    person_id = IntField(verbose_name='Ключ человека в старой БД')
+    user_id = IntField(verbose_name='Ключ пользователя в старой БД')
     # Нужно добавить courses_history для ведения истории повышения квалификации
 
     @property
@@ -182,11 +179,29 @@ class Person(Document):
     def fio(self) -> str:
         result = f'{self.last_name} {self.first_name:.1}.'
         if self.second_name:
-            result += f'{self.second_name:.1}.'
+            result += f' {self.second_name:.1}.'
         return result
 
     def __str__(self):
         return self.fio
+
+
+class Department(db.Document):
+    """
+    Кафедра
+    """
+
+    name = StringField(verbose_name='Название', required=True)
+    short = StringField(verbose_name='Сокращение')
+    organization = StringField(verbose_name='Институт')
+    code = IntField(verbose_name='Код')
+    depart_id = IntField(verbose_name='Ключ кафедры в старой БД')
+
+    def __str__(self):
+        if self.short:
+            return f'{self.short} {self.organization}'
+        else:
+            return f'{self.name}'
 
 
 class EducationProgram(db.Document):
@@ -309,7 +324,7 @@ class Course(Document):
     def hour_cons(self, ) -> int:
         res = 100500
         if CT_EXAM in self.controls:
-            res = min(self.hour)
+            res = min(self.hour_exam)
         return res
 
     def __str__(self):
@@ -317,6 +332,7 @@ class Course(Document):
 
 
 def semester_str(semester_abs: int) -> str:
+    """ Строковое представление семестра """
     year, half = divmod(semester_abs, 2)
     sem = 'осень' if half else 'весна'
     return f'{year}, {sem}'
