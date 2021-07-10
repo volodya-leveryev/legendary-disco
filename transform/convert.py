@@ -13,6 +13,15 @@ def convert(f1, f2):
         json.dump(obj, f, ensure_ascii=False, indent=True)
 
 
+def remove_persons_without_id():
+    to_remove = []
+    for p in Person.objects.all():
+        if not p.person_id:
+            to_remove.append(p)
+    for p in to_remove:
+        p.delete()
+
+
 def load_data(filename):
     data = {}
     with open(f'./{filename}') as f:
@@ -106,17 +115,57 @@ def load_teachers(auth_data, umo_data):
         new_person.save()
 
 
+def load_students(auth_data, umo_data):
+    students = umo_data['umo.student']
+    persons = umo_data['umo.person']
+    users = auth_data['auth.user']
+
+    new_persons = {}
+    for p in Person.objects.all():
+        new_persons[p.person_id] = p
+
+    for key, s in students.items():
+        if key in new_persons:
+            new_person = new_persons[key]
+        else:
+            new_person = Person()
+
+        p = persons[key]
+
+        if p['last_name'] and p['first_name']:
+            new_person.last_name = p['last_name']
+            new_person.first_name = p['first_name']
+            new_person.second_name = p['second_name']
+            new_person.maiden_name = p['maiden_name']
+        else:
+            fio = p['FIO'].strip()
+            new_person.last_name, fio = fio.split(maxsplit=1)
+            if ' ' in fio:
+                new_person.first_name, fio = fio.split(maxsplit=1)
+                new_person.second_name = fio
+            else:
+                new_person.first_name = fio
+
+        new_person.person_id = key
+        new_person.is_user = False
+        new_person.is_admin = False
+        if p['user'] and p['user'] in users:
+            u = users[p['user']]
+            if u['email'] and u['email'] not in new_person.emails:
+                new_person.emails.append(u['email'])
+            new_person.user_id = p['user']
+            new_person.is_user = u['is_active']
+            new_person.is_admin = u['is_superuser'] or u['is_staff']
+
+        new_person.save()
+
+
 def main():
     _client = connect('jimmy')
     auth_data = load_data('2021-07-02-auth.json')
     umo_data = load_data('2021-07-02-umo.json')
     # load_teachers(auth_data, umo_data)
-    to_remove = []
-    for p in Person.objects.all():
-        if not p.person_id:
-            to_remove.append(p)
-    for p in to_remove:
-        p.delete()
+    # load_students(auth_data, umo_data)
 
 
 if __name__ == '__main__':
