@@ -3,7 +3,7 @@ import json
 
 from mongoengine import connect
 
-from jimmy.models import Department, Person
+from jimmy.models import Department, Person, StudentGroup
 
 
 def convert(f1, f2):
@@ -160,12 +160,58 @@ def load_students(auth_data, umo_data):
         new_person.save()
 
 
+def load_groups(umo_data):
+    year = {
+        1: 2014,
+        4: 2015,
+        5: 2016,
+        6: 2017,
+        2: 2018,
+        3: 2019,
+        7: 2020,
+        8: 2021,
+    }
+
+    programs = umo_data['umo.eduprogram']
+    specials = umo_data['umo.specialization']
+    profiles = umo_data['umo.profile']
+    groups = umo_data['umo.group']
+
+    new_groups = {}
+    for sg in StudentGroup.objects.all():
+        new_groups[sg.group_id] = sg
+
+    for key, g in groups.items():
+        if not g['program']:
+            continue
+
+        p = programs[g['program']]
+        s = specials[p['specialization']]
+        p2 = profiles[p['profile']]
+
+        if key in new_groups:
+            new_group = new_groups[key]
+        else:
+            new_group = StudentGroup()
+
+        new_group.name = g['Name']
+        new_group.year = year[g['begin_year']]
+        new_group.program_code = s['code']
+        new_group.program_name = s['name']
+        new_group.program_specialty = p2['name']
+        new_group.level = 'Бак' if s['level'] else 'Маг'
+        new_group.group_id = key
+
+        new_group.save()
+
+
 def main():
     _client = connect('jimmy')
     auth_data = load_data('2021-07-02-auth.json')
     umo_data = load_data('2021-07-02-umo.json')
     # load_teachers(auth_data, umo_data)
     # load_students(auth_data, umo_data)
+    load_groups(umo_data)
 
 
 if __name__ == '__main__':

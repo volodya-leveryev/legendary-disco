@@ -1,3 +1,5 @@
+""" Модели данных """
+
 from datetime import datetime
 from io import TextIOBase
 from typing import Dict, Union, List
@@ -5,8 +7,8 @@ from xml.etree import ElementTree
 
 from flask_mongoengine import MongoEngine
 from jellyfish import jaro_winkler_similarity
-from mongoengine import (CASCADE, NULLIFY, BooleanField, DecimalField, DateTimeField, Document, EmbeddedDocument,
-                         EmbeddedDocumentField, IntField, ListField, ReferenceField, StringField)
+from mongoengine import (CASCADE, NULLIFY, BooleanField, DecimalField, DateField, DateTimeField, Document,
+                         EmbeddedDocument, EmbeddedDocumentField, IntField, ListField, ReferenceField, StringField)
 
 db = MongoEngine()
 
@@ -110,30 +112,22 @@ CONTROLS = (
 
 
 class Person(Document):
-    """
-    Человек и пользователь системы
-    """
+    """ Человек и пользователь системы """
 
     class Degree(EmbeddedDocument):
-        """
-        Строка истории присуждения человеку учёных степеней
-        """
+        """ Строка истории присуждения человеку учёных степеней """
 
         date = DateTimeField(verbose_name='Дата', required=True)
         degree = StringField(verbose_name='Уч. степень', required=True, choices=DEGREES)
 
     class Title(EmbeddedDocument):
-        """
-        Строка истории присвоения человеку учёных званий
-        """
+        """ Строка истории присвоения человеку учёных званий """
 
         date = DateTimeField(verbose_name='Дата', required=True)
         title = StringField(verbose_name='Уч. звание', required=True, choices=TITLES)
 
     class Job(EmbeddedDocument):
-        """
-        Строка истории трудоустройства человека
-        """
+        """ Строка истории трудоустройства человека """
 
         date = DateTimeField(verbose_name='Дата', required=True)
         department = ReferenceField('Department', verbose_name='Кафедра', on_delete=NULLIFY)
@@ -151,10 +145,11 @@ class Person(Document):
     emails = ListField(StringField(), verbose_name='Почта')
     is_user = BooleanField(verbose_name='Пользователь')
     is_admin = BooleanField(verbose_name='Администратор')
-    student_num = StringField(verbose_name='Номер студ. билета')
+    student_num = StringField(verbose_name='Текущий № студбилета')
     degree_history = ListField(EmbeddedDocumentField(Degree), verbose_name='Уч. степень')
     title_history = ListField(EmbeddedDocumentField(Title), verbose_name='Уч. звание')
     job_history = ListField(EmbeddedDocumentField(Job), verbose_name='Должность')
+    student_group = ReferenceField('StudentGroup', verbose_name='Текущая учебная группа')
     person_id = IntField(verbose_name='Ключ человека в старой БД')
     user_id = IntField(verbose_name='Ключ пользователя в старой БД')
     # Нужно добавить courses_history для ведения истории повышения квалификации
@@ -187,14 +182,12 @@ class Person(Document):
 
 
 class Department(db.Document):
-    """
-    Кафедра
-    """
+    """ Кафедра """
 
     name = StringField(verbose_name='Название', required=True)
     short = StringField(verbose_name='Сокращение')
     organization = StringField(verbose_name='Институт')
-    code = IntField(verbose_name='Код')
+    code = IntField(verbose_name='Код в БД Планы')
     depart_id = IntField(verbose_name='Ключ кафедры в старой БД')
 
     def __str__(self):
@@ -204,46 +197,24 @@ class Department(db.Document):
             return f'{self.name}'
 
 
-class EducationProgram(db.Document):
-    """
-    Образовательная программа
-    """
-
-    code = StringField(verbose_name='Код', required=True)
-    name = StringField(verbose_name='Название', required=True)
-    short = StringField(verbose_name='Сокращение', required=True)
-    level = StringField(verbose_name='Уровень', required=True, choices=LEVEL)
-
-    def __str__(self):
-        return f'{self.level} {self.short}'
-
-
 class StudentGroup(Document):
-    """
-    Учебная группа студентов
-    """
+    """ Учебная группа студентов """
 
     class Subgroups(EmbeddedDocument):
-        """
-        Строка истории изменения количества подгрупп
-        """
-
-        date = DateTimeField(verbose_name='Дата')
-        count = IntField(verbose_name='Количество', requred=True)
-
-    class Students(EmbeddedDocument):
-        """
-        Строка истории изменения количества студентов
-        """
+        """ Строка истории изменения количества подгрупп """
 
         date = DateTimeField(verbose_name='Дата')
         count = IntField(verbose_name='Количество', requred=True)
 
     name = StringField(verbose_name='Название', required=True)
     year = IntField(verbose_name='Год поступления', required=True)
-    program = ReferenceField('EducationProgram', verbose_name='Программа', required=True, on_delete=NULLIFY)
     subgroups_history = ListField(EmbeddedDocumentField(Subgroups), verbose_name='Подгруппы')
-    students_history = ListField(EmbeddedDocumentField(Students), verbose_name='Студенты')
+    students = ListField(ReferenceField('Person'), verbose_name='Студенты')
+    program_code = StringField(verbose_name='Код направления', required=True)
+    program_name = StringField(verbose_name='Название направления', required=True)
+    program_specialty = StringField(verbose_name='Профиль (специализация)')
+    level = StringField(verbose_name='Уровень', required=True, choices=LEVEL)
+    group_id = IntField(verbose_name='Код в старой БД')
 
     def subgroups(self, semester_abs: int) -> int:
         """ Количество подгрупп в семестре """
@@ -252,11 +223,6 @@ class StudentGroup(Document):
         subgroups_list = filter(lambda s: s.date < border, self.subgroups_history)
         subgroups_list = sorted(subgroups_list, key=lambda t: t.date)[-1:]
         return subgroups_list[0].count if subgroups_list else 0
-
-    @property
-    def students(self) -> int:
-        students_list = sorted(self.students_history, key=lambda t: t.date)[-1:]
-        return students_list[0].count if students_list else 0
 
     @property
     def courses(self) -> int:
@@ -268,6 +234,14 @@ class StudentGroup(Document):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class AdmissionHistory(Document):
+    """ История зачисления и отчисления студентов """
+    student = ReferenceField('Person', verbose_name='Студент', required=True, on_delete=CASCADE)
+    group = ReferenceField('StudentGroup', verbose_name='Учебная группа', required=True, on_delete=CASCADE)
+    beg = DateField(verbose_name='Дата зачисления')
+    end = DateField(verbose_name='Дата отчисления')
 
 
 class Subject(Document):

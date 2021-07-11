@@ -12,7 +12,6 @@ def init(app: Flask) -> None:
     admin.init_app(app)
     admin.add_view(LoadPlanView(name='Загрузка РУП', endpoint='load_plan'))
     admin.add_view(PersonView(models.Person, 'Люди'))
-    admin.add_view(EducationProgramView(models.EducationProgram, 'Программы обучения'))
     admin.add_view(StudentGroupView(models.StudentGroup, 'Учебные группы'))
     admin.add_view(CourseView(models.Course, 'Курсы обучения'))
     admin.add_view(DepartmentView(models.Department, 'Кафедры'))
@@ -43,10 +42,6 @@ class LoadPlanView(Auth, BaseView):
         return self.render('load_plan.html', form=form)
 
 
-class EducationProgramView(Auth, ModelView):
-    pass
-
-
 class DepartmentView(Auth, ModelView):
     # column_default_sort = [('organization', False), ('code', False), ('name', False)]
     column_default_sort = [('depart_id', False)]
@@ -58,8 +53,8 @@ class PersonView(Auth, ModelView):
 
 
 class StudentGroupView(Auth, ModelView):
-    column_default_sort = [('program', False), ('year', False), ('name', False)]
-    column_list = ('program', 'year', 'name', 'courses')
+    column_default_sort = [('year', False), ('program_code', False), ('name', False)]
+    column_list = ('year', 'program_code', 'name', 'courses', 'group_id')
 
 
 class CourseView(Auth, ModelView):
