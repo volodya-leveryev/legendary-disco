@@ -242,6 +242,7 @@ class AdmissionHistory(Document):
     group = ReferenceField('StudentGroup', verbose_name='Учебная группа', required=True, on_delete=CASCADE)
     beg = DateField(verbose_name='Дата зачисления')
     end = DateField(verbose_name='Дата отчисления')
+    group_list_id = IntField(verbose_name='Код в старой БД')
 
 
 class Subject(Document):

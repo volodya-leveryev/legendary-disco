@@ -15,6 +15,7 @@ def init(app: Flask) -> None:
     admin.add_view(StudentGroupView(models.StudentGroup, 'Учебные группы'))
     admin.add_view(CourseView(models.Course, 'Курсы обучения'))
     admin.add_view(DepartmentView(models.Department, 'Кафедры'))
+    admin.add_view(AdmissionHistoryView(models.AdmissionHistory, 'Зачисления студентов'))
     admin.add_link(MenuLink(name='Сайт', url='/'))
 
 
@@ -49,7 +50,12 @@ class DepartmentView(Auth, ModelView):
 
 class PersonView(Auth, ModelView):
     column_default_sort = [('last_name', False), ('first_name', False), ('second_name', False)]
-    column_list = ('fio', 'emails', 'degree', 'title', 'job')
+    column_list = ('fio', 'emails', 'job', 'student_group')
+
+
+class AdmissionHistoryView(Auth, ModelView):
+    column_default_sort = [('group', False), ('student', False)]
+    column_list = ('group', 'student', 'beg', 'end')
 
 
 class StudentGroupView(Auth, ModelView):
