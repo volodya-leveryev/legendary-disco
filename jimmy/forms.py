@@ -1,3 +1,4 @@
+""" HTML-формы для ввода данных """
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import SelectField
@@ -5,6 +6,7 @@ from wtforms.validators import DataRequired
 
 
 class RupForm(FlaskForm):
+    """ Форма для загрузки файла РУП """
     student_group = SelectField('Учебная группа', validators=[DataRequired()])
     rup_file = FileField('Файл РУП', validators=[FileRequired()])
 

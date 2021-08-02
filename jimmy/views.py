@@ -1,13 +1,16 @@
+""" Генерация HTML-страниц """
 from flask import redirect, render_template, request, session, url_for
 
 from jimmy.models import Course, semester_str
 
 
 def semester_filter(semester_abs: int = 4042) -> str:
+    """ Строковое представление семестра в шаблонах Jinja2 """
     return semester_str(semester_abs)
 
 
 def login_required(func):
+    """ Декоратор для принудительной аутентификации """
     def wrap(*args, **kwargs):
         if 'user' not in session:
             return redirect(url_for('auth.login_page'))
@@ -17,6 +20,7 @@ def login_required(func):
 
 @login_required
 def semester_view(year, half):
+    """ Возврат к странице после смены текущего семестра """
     session['sem'] = year * 2 + half - 1
     next_url = request.args.get('next', url_for('home'))
     return redirect(next_url)
@@ -24,12 +28,14 @@ def semester_view(year, half):
 
 @login_required
 def home_page():
+    """ Карточка учебных поручений преподавателя """
     courses = Course.objects.filter(teacher=session['user']['id'], semester_abs=session['sem'])
     return render_template('home.html', courses=courses)
 
 
 @login_required
 def course_list():
+    """ Список курсов """
     courses = Course.objects.order_by('student_group', 'semester')
     return render_template('course_list.html', object_list=courses)
 
@@ -37,6 +43,7 @@ def course_list():
 # TODO: доделать формы редактирования и убрать админку
 # @login_required
 # def person_list():
+#     """ Список людей """
 #     persons = models.Person.objects.order_by('last_name', 'first_name', 'second_name')
 #     return render_template('person_list.html', persons=persons)
 

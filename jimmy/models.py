@@ -156,22 +156,26 @@ class Person(Document):
 
     @property
     def degree(self) -> str:
+        """ Строковое представление для ученой степени """
         degree_list = sorted(self.degree_history, key=lambda t: t.date)[-1:]
         return degree_list[0].degree if degree_list else ''
 
     @property
     def title(self) -> str:
+        """ Строковое представление для ученого звания """
         title_list = sorted(self.title_history, key=lambda t: t.date)[-1:]
         return title_list[0].title if title_list else ''
 
     @property
     def job(self) -> str:
+        """ Строковое представление для должности """
         active_jobs = filter(lambda j: j.is_active, self.job_history)
         sorted_jobs = sorted(active_jobs, key=lambda j: j.wage_rate, reverse=True)
         return ', '.join(map(str, sorted_jobs))
 
     @property
     def fio(self) -> str:
+        """ Строковое представление ФИО человека """
         result = f'{self.last_name} {self.first_name:.1}.'
         if self.second_name:
             result += f' {self.second_name:.1}.'
@@ -191,10 +195,10 @@ class Department(db.Document):
     depart_id = IntField(verbose_name='Ключ кафедры в старой БД')
 
     def __str__(self):
+        result = f'{self.short}'
         if self.short:
-            return f'{self.short} {self.organization}'
-        else:
-            return f'{self.name}'
+            result += f' {self.organization}'
+        return result
 
 
 class StudentGroup(Document):
@@ -226,6 +230,7 @@ class StudentGroup(Document):
 
     @property
     def courses(self) -> int:
+        """ Количество курсов для текущей учебной группы """
         return len(Course.objects(student_group=self))
 
     def get_education_year(self, semester_abs: int) -> int:
@@ -286,17 +291,21 @@ class Course(Document):
 
     @property
     def sem(self) -> int:
+        """ Номер текущего семестра """
         return self.semester_abs - 2 * self.student_group.year
 
     @property
     def year(self) -> int:
+        """ Год текущего семестра """
         return self.sem // 2
 
     @property
     def semester_str(self) -> str:
+        """ Строковое представление текущего семестра """
         return semester_str(self.semester_abs)
 
-    def hour_cons(self, ) -> int:
+    def hour_cons(self) -> int:
+        """ Количество часов консультаций """
         res = 100500
         if CT_EXAM in self.controls:
             res = min(self.hour_exam)

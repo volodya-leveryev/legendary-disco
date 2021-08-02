@@ -1,84 +1,84 @@
+""" Тестирование моделей """
 from datetime import datetime
 
 import pytest
 
-from jimmy.models import Course, EducationProgram, Person, StudentGroup
+from jimmy.models import Course, Person, StudentGroup
 
 
 @pytest.fixture
 def degree1():
-    d1 = Person.Degree()
-    d1.date = datetime(2010, 1, 1)
-    d1.degree = 'к.ф.-м.н.'
-    return d1
+    """ Создание в тестовой базе ученой степени """
+    degree = Person.Degree()
+    degree.date = datetime(2010, 1, 1)
+    degree.degree = 'к.ф.-м.н.'
+    return degree
 
 
 @pytest.fixture
 def degree2():
-    d2 = Person.Degree()
-    d2.date = datetime(2020, 1, 1)
-    d2.degree = 'д.ф.-м.н.'
-    return d2
+    """ Создание в тестовой базе ученой степени """
+    degree = Person.Degree()
+    degree.date = datetime(2020, 1, 1)
+    degree.degree = 'д.ф.-м.н.'
+    return degree
 
 
 @pytest.fixture
 def title1():
-    t1 = Person.Title()
-    t1.date = datetime(2010, 1, 1)
-    t1.title = 'доц.'
-    return t1
+    """ Создание в тестовой базе ученого звания """
+    title = Person.Title()
+    title.date = datetime(2010, 1, 1)
+    title.title = 'доц.'
+    return title
 
 
 @pytest.fixture
 def title2():
-    t2 = Person.Title()
-    t2.date = datetime(2020, 1, 1)
-    t2.title = 'проф.'
-    return t2
+    """ Создание в тестовой базе ученого звания """
+    title = Person.Title()
+    title.date = datetime(2020, 1, 1)
+    title.title = 'проф.'
+    return title
 
 
 @pytest.fixture
 def job1():
-    j = Person.Job()
-    j.is_active = False
-    j.date = datetime(2010, 1, 1)
-    j.position = 'асс.'
-    j.department = 'МТС'
-    j.wage_rate = 0.5
-    return j
+    """ Создание в тестовой базе должности сотрудника """
+    job = Person.Job()
+    job.is_active = False
+    job.date = datetime(2010, 1, 1)
+    job.position = 'асс.'
+    job.department = 'МТС'
+    job.wage_rate = 0.5
+    return job
 
 
 @pytest.fixture
 def job2():
-    j = Person.Job()
-    j.is_active = False
-    j.date = datetime(2020, 1, 1)
-    j.position = 'ст.пр.'
-    j.department = 'ИТ'
-    j.wage_rate = 1.0
-    return j
+    """ Создание в тестовой базе должности сотрудника """
+    job = Person.Job()
+    job.is_active = False
+    job.date = datetime(2020, 1, 1)
+    job.position = 'ст.пр.'
+    job.department = 'ИТ'
+    job.wage_rate = 1.0
+    return job
 
 
 @pytest.fixture
-def education_program():
-    ep = EducationProgram()
-    ep.code = '09.03.01'
-    ep.name = 'Информатика и вычислительная техника'
-    ep.short = 'ИВТ'
-    ep.level = 'Бак.'
-    return ep
-
-
-@pytest.fixture
-def student_group(education_program):
-    sg = StudentGroup()
-    sg.name = 'Б-ИВТ-19-1'
-    sg.year = 2019
-    sg.program = education_program
-    return sg
+def student_group():
+    """ Создание в тестовой базе учебного плана """
+    group = StudentGroup()
+    group.name = 'Б-ИВТ-19-1'
+    group.year = 2019
+    #group.program = education_program
+    return group
 
 
 def test_person(degree1, degree2, job1, job2, title1, title2):
+    """ Проверка модельного класса для людей """
+    # Строковое представление
     person = Person()
     person.last_name = 'Иванов'
     person.first_name = 'Иван'
@@ -86,34 +86,36 @@ def test_person(degree1, degree2, job1, job2, title1, title2):
     assert person.fio == 'Иванов И.И.'
     assert str(person) == 'Иванов И.И.'
 
+    # История присуждения ученых степеней
     person.degree_history = [degree1, degree2]
     assert person.degree == 'д.ф.-м.н.'
     person.degree_history = [degree2, degree1]
     assert person.degree == 'д.ф.-м.н.'
 
+    # История присвоения ученых званий
     person.title_history = [title1, title2]
     assert person.title == 'проф.'
     person.title_history = [title2, title1]
     assert person.title == 'проф.'
 
+    # История должностей сотрудника
     person.job_history = [job1, job2]
     assert person.job == ''
 
+    # История должностей сотрудника
     job1.is_active = True
     person.job_history = [job1, job2]
     assert person.job == '0.5 асс. каф. МТС'
 
+    # История должностей сотрудника
     job2.is_active = True
     person.job_history = [job1, job2]
     assert person.job == '1.0 ст.пр. каф. ИТ, 0.5 асс. каф. МТС'
 
+    # История должностей сотрудника
     job1.is_active = False
     person.job_history = [job1, job2]
     assert person.job == '1.0 ст.пр. каф. ИТ'
-
-
-def test_education_program(education_program):
-    assert str(education_program) == 'Бак. ИВТ'
 
 
 def test_student_group(student_group):

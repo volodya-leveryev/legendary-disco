@@ -1,9 +1,11 @@
+""" Основной модуль пакета """
 from flask import Flask
 
 from jimmy import models, views, views_admin, views_auth
 
 
 def create_app():
+    """ Создание приложения Flask """
     app = Flask(__name__)
     app.config.from_envvar('JIMMY_CONFIG')
 
