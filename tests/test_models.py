@@ -1,4 +1,5 @@
 """ Тестирование моделей """
+
 from datetime import datetime
 
 import pytest
@@ -130,12 +131,14 @@ def test_person_job_history(person, job1, job2):
 
 
 def test_student_group(student_group):
+    """ Студенческая группа """
     assert str(student_group) == 'Б-ИВТ-19-1'
     assert student_group.get_education_year(4040) == 1
     assert student_group.get_education_year(4041) == 2
 
 
 def test_student_group_subgroups(student_group):
+    """ Подгруппы студенческих групп """
     sub_groups1 = StudentGroup.Subgroups()
     sub_groups1.date = datetime(2010, 1, 1)
     sub_groups1.count = 2

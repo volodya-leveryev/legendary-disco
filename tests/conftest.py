@@ -1,3 +1,5 @@
+""" Создание фиктивных данных для тестирования """
+
 import pytest
 
 from jimmy import create_app
@@ -6,6 +8,7 @@ from jimmy.models import Person, StudentGroup, db
 
 @pytest.fixture
 def client():
+    """ Тестовый веб-клиент для тестирование """
     app = create_app({
         'TESTING': True,
         'WTF_CSRF_ENABLED': False,

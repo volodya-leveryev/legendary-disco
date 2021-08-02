@@ -1,11 +1,10 @@
 """ Тестирование HTML-страниц для админки """
+
 import os
 
-import pytest
 from werkzeug.datastructures import FileStorage
 
-from jimmy import create_app
-from jimmy.models import Course, Person, StudentGroup, db
+from jimmy.models import Course, StudentGroup
 from jimmy.views_auth import init_session
 
 
