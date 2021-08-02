@@ -24,13 +24,13 @@ def init(app: Flask) -> None:
         oauth.register(provider, server_metadata_url=urls[provider], client_kwargs=scope)
 
 
-def init_session(user_email):
+def init_session(user_email, s=session):
     """ Начало сеанса работы пользователя после успешной аутентификации """
     user = Person.objects(emails=user_email)
     if not user:
         abort(401)
-    session['sem'] = 2021 * 2
-    session['user'] = {
+    s['sem'] = 2021 * 2
+    s['user'] = {
         'id': str(user[0].id),
         'str': str(user[0]),
     }

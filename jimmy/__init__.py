@@ -4,10 +4,15 @@ from flask import Flask
 from jimmy import models, views, views_admin, views_auth
 
 
-def create_app():
+def create_app(config=None):
     """ Создание приложения Flask """
     app = Flask(__name__)
-    app.config.from_envvar('JIMMY_CONFIG')
+    if config:
+        app.config.from_mapping(config)
+    elif app.config['DEBUG']:
+        app.config.from_pyfile('development.cfg')
+    else:
+        app.config.from_pyfile('production.cfg')
 
     app.add_template_filter(views.semester_filter, 'semester')
 
